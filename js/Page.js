@@ -1,19 +1,48 @@
 import { html, useEffect, useState } from "./preact-htm.js";
 import { fetchGoogleSheetCSV } from "./dataLoader.js";
+import { FilterContainer } from "./FilterContainer.js";
+
+const FILTERS = [
+  {
+    key: "seniority",
+    label: "Seniority",
+    dataField: "seniority",
+    defaultValue: "Principal",
+  },
+  { key: "team", label: "Team", dataField: "team", defaultValue: "Deal team" },
+  { key: "region", label: "Region", dataField: "region", defaultValue: "UK" },
+  {
+    key: "strategy",
+    label: "Strategy",
+    dataField: "strategy",
+    defaultValue: "Buyout",
+  },
+  {
+    key: "AUMband",
+    label: "AUM Band",
+    dataField: "AUMband",
+    defaultValue: "50-100",
+  },
+];
 
 export function Page({ assetClass }) {
   const [dataForAssetClass, setDataForAssetClass] = useState([]);
 
-  // filter states
-  const [selectedSeniority, setSelectedSeniority] = useState("Principal");
-  const [selectedTeam, setSelectedTeam] = useState("Deal team");
-  const [selectedRegion, setSelectedRegion] = useState("UK");
-  const [selectedStrategy, setSelectedStrategy] = useState("Buyout");
-  const [selectedAUMBand, setSelectedAUMBand] = useState("50-100");
+  const [filterSelected, setFilterSelected] = useState(
+    Object.fromEntries(FILTERS.map((f) => [f.key, f.defaultValue])),
+  );
+  const [filterOptions, setFilterOptions] = useState(
+    Object.fromEntries(FILTERS.map((f) => [f.key, []])),
+  );
 
   const [dataFiltered, setDataFiltered] = useState([]);
 
+  const loadData = true;
+
   useEffect(() => {
+    if (!loadData) {
+      return;
+    }
     fetchGoogleSheetCSV("main-data")
       .then((rawData) => {
         const formattedData = rawData.map((row) => {
@@ -41,6 +70,19 @@ export function Page({ assetClass }) {
           // Secondaries discount
         });
 
+        console.log("Formatted data:", formattedData);
+
+        // get filter options for the filters based on the data
+        const newOptions = Object.fromEntries(
+          FILTERS.map((f) => [
+            f.key,
+            [...new Set(formattedData.map((row) => row[f.dataField]))].map(
+              (value) => ({ value, label: value }),
+            ),
+          ]),
+        );
+        setFilterOptions(newOptions);
+
         const filteredByAssetClass = formattedData.filter(
           (row) => row.assetClass === assetClass,
         );
@@ -54,29 +96,11 @@ export function Page({ assetClass }) {
 
   // Apply filters to the data for the selected asset class
   useEffect(() => {
-    console.log("Applying filters:", {
-      selectedSeniority,
-      selectedTeam,
-      selectedRegion,
-    });
-    const filtered = dataForAssetClass.filter((row) => {
-      return (
-        row.seniority === selectedSeniority &&
-        row.team === selectedTeam &&
-        row.region === selectedRegion &&
-        row.strategy === selectedStrategy &&
-        row.AUMband === selectedAUMBand
-      );
-    });
+    const filtered = dataForAssetClass.filter((row) =>
+      FILTERS.every((f) => row[f.dataField] === filterSelected[f.key]),
+    );
     setDataFiltered(filtered);
-  }, [
-    selectedSeniority,
-    selectedTeam,
-    selectedRegion,
-    selectedStrategy,
-    selectedAUMBand,
-    dataForAssetClass,
-  ]);
+  }, [dataForAssetClass, filterSelected]);
 
   console.log(
     "Page component data:",
@@ -95,7 +119,30 @@ export function Page({ assetClass }) {
 
   return html`
     <div class="page">
-      <p>Asset Class: ${assetClass}</p>
+      <header>
+        <div>
+          <h1>${assetClass} compensation levels</h1>
+          <div>
+            <div>
+              <p>Last update</p>
+              <p>XXXXXX</p>
+            </div>
+            <button onclick=${() => console.log("export data")}>
+              Export data
+            </button>
+          </div>
+        </div>
+        <${FilterContainer}
+          filters=${FILTERS.map((f) => ({
+            key: f.key,
+            label: f.label,
+            value: filterSelected[f.key],
+            options: filterOptions[f.key],
+            onChange: (value) =>
+              setFilterSelected((prev) => ({ ...prev, [f.key]: value })),
+          }))}
+        />
+      </header>
     </div>
   `;
 }
