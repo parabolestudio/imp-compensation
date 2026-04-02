@@ -1,7 +1,7 @@
 import { html } from "./preact-htm.js";
 
 export function FilterContainer({ filters }) {
-  return html`<div>
+  return html`<div class="filter-container">
     ${filters.map((filter, index) => {
       const filterName = filter.label;
       const filterValue = filter.value;

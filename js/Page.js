@@ -1,6 +1,7 @@
 import { html, useEffect, useState } from "./preact-htm.js";
 import { fetchGoogleSheetCSV } from "./dataLoader.js";
 import { FilterContainer } from "./FilterContainer.js";
+import { Box } from "./Box.js";
 
 const FILTERS = [
   {
@@ -37,7 +38,7 @@ export function Page({ assetClass }) {
 
   const [dataFiltered, setDataFiltered] = useState([]);
 
-  const loadData = true;
+  const loadData = false;
 
   useEffect(() => {
     if (!loadData) {
@@ -109,20 +110,20 @@ export function Page({ assetClass }) {
     dataFiltered,
   );
 
-  if (!dataForAssetClass || dataForAssetClass.length === 0) {
-    return html`
-      <div class="page">
-        <p>Loading data...</p>
-      </div>
-    `;
-  }
+  // if (!dataForAssetClass || dataForAssetClass.length === 0) {
+  //   return html`
+  //     <div class="page">
+  //       <p>Loading data...</p>
+  //     </div>
+  //   `;
+  // }
 
   return html`
-    <div class="page">
-      <header>
-        <div>
+    <div class="custom-page">
+      <div class="header">
+        <div class="header-top">
           <h1>${assetClass} compensation levels</h1>
-          <div>
+          <div class="header-top-right">
             <div>
               <p>Last update</p>
               <p>XXXXXX</p>
@@ -142,7 +143,38 @@ export function Page({ assetClass }) {
               setFilterSelected((prev) => ({ ...prev, [f.key]: value })),
           }))}
         />
-      </header>
+      </div>
+
+      <div class="section-1">
+        <${Box}
+          headline="${`${filterSelected["seniority"]}, ${filterSelected["team"]} `}"
+          children="${html`test`}"
+        />
+        <div class="section-1-right">
+          <${Box}
+            className="bg-dark"
+            children="${html`<div>
+              <p>XXX</p>
+              <p>Companies in Sample</p>
+            </div>`}"
+          />
+          <${Box}
+            children="${html`<div>
+              <p>XXX</p>
+              <p>data points in Sample</p>
+            </div>`}"
+          />
+        </div>
+      </div>
+
+      <div class="section-2">
+        <${Box} headline="Compensation breakdown" children="${html`test`}" />
+      </div>
+
+      <div class="section-3">
+        <${Box} headline="Compensation distribution" children="${html`test`}" />
+        <${Box} headline="Prevalence of incentives" children="${html`test`}" />
+      </div>
     </div>
   `;
 }
