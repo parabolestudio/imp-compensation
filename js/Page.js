@@ -2,6 +2,7 @@ import { html, useEffect, useState } from "./preact-htm.js";
 import { fetchGoogleSheetCSV } from "./dataLoader.js";
 import { FilterContainer } from "./FilterContainer.js";
 import { Box } from "./Box.js";
+import { DataHighlight } from "./DataHighlight.js";
 
 const FILTERS = [
   {
@@ -38,7 +39,7 @@ export function Page({ assetClass }) {
 
   const [dataFiltered, setDataFiltered] = useState([]);
 
-  const loadData = false;
+  const loadData = true;
 
   useEffect(() => {
     if (!loadData) {
@@ -54,6 +55,9 @@ export function Page({ assetClass }) {
             region: row["Region"],
             strategy: row["Strategy"],
             AUMband: row["AUM band ($bn)"],
+            numberOfCompanies: +row["Number of firms"],
+            numberOfSamples: +row["Number of respondents"].replace(/\r/g, ""),
+            percentile: row["Percentile"],
           };
           // AUM band
           // Buyout_ref
@@ -62,9 +66,6 @@ export function Page({ assetClass }) {
           // Distressed_ref
           // Final 2026 value
           // Infra_ref
-          // Number of firms
-          // Number of respondents
-          // Percentile
           // RE ratio
           // Role
           // SC discount
@@ -110,23 +111,23 @@ export function Page({ assetClass }) {
     dataFiltered,
   );
 
-  // if (!dataForAssetClass || dataForAssetClass.length === 0) {
-  //   return html`
-  //     <div class="page">
-  //       <p>Loading data...</p>
-  //     </div>
-  //   `;
-  // }
+  if (!dataForAssetClass || dataForAssetClass.length === 0) {
+    return html`
+      <div class="page">
+        <p>Loading data...</p>
+      </div>
+    `;
+  }
 
   return html`
     <div class="custom-page">
-      <div class="header">
+      <div class="section header">
         <div class="header-top">
           <h1>${assetClass} compensation levels</h1>
           <div class="header-top-right">
             <div>
-              <p>Last update</p>
-              <p>XXXXXX</p>
+              <p class="text-tags-large">Last update</p>
+              <p class="text-buttons">QX 2026</p>
             </div>
             <button onclick=${() => console.log("export data")}>
               Export data
@@ -145,35 +146,70 @@ export function Page({ assetClass }) {
         />
       </div>
 
-      <div class="section-1">
-        <${Box}
-          headline="${`${filterSelected["seniority"]}, ${filterSelected["team"]} `}"
-          children="${html`test`}"
-        />
-        <div class="section-1-right">
+      <div
+        style="display: flex; flex-direction: column; gap: 32px; padding: 40px 32px;"
+      >
+        <div class="section section-1">
           <${Box}
-            className="bg-dark"
+            headline="${`${filterSelected["seniority"]}, ${filterSelected["team"]} `}"
             children="${html`<div>
-              <p>XXX</p>
-              <p>Companies in Sample</p>
+              <p class="text-body">
+                Responsible for sourcing transactions, leading due diligence and
+                negotiations, and driving value creation in portfolio companies
+                while managing junior team members. The role sits just below
+                Partner, acting as a bridge between the deal team and the
+                partnership, with increasing influence on investment decisions,
+                fundraising, and overall firm strategy.
+              </p>
+              <div class="data-highlights-container">
+                <${DataHighlight}
+                  headline="Typical Experience"
+                  value="12+ Years"
+                />
+                <${DataHighlight} headline="Direct Reports" value="0-3" />
+                <${DataHighlight} headline="Carry Eligible" value="Yes" />
+                <${DataHighlight} headline="Share of Women" value="25%" />
+              </div>
             </div>`}"
           />
+          <div class="section-1-right">
+            <${Box}
+              className="bg-dark"
+              children="${html`<div>
+                <p class="text-big-numbers-large">XXX</p>
+                <p class="text-tags-large">Companies in Sample</p>
+              </div>`}"
+            />
+            <${Box}
+              children="${html`<div>
+                <p class="text-big-numbers-large">XXX</p>
+                <p class="text-tags-large">Data points in Sample</p>
+              </div>`}"
+            />
+          </div>
+        </div>
+
+        <div class="section section-2">
           <${Box}
-            children="${html`<div>
-              <p>XXX</p>
-              <p>data points in Sample</p>
-            </div>`}"
+            headline="Compensation breakdown"
+            headlineRight="${html`Values in XXXX`}"
+            className="no-padding"
+            children="${html`here comes the table`}"
           />
         </div>
-      </div>
 
-      <div class="section-2">
-        <${Box} headline="Compensation breakdown" children="${html`test`}" />
-      </div>
-
-      <div class="section-3">
-        <${Box} headline="Compensation distribution" children="${html`test`}" />
-        <${Box} headline="Prevalence of incentives" children="${html`test`}" />
+        <div class="section section-3">
+          <${Box}
+            headline="Compensation distribution"
+            className="width-50"
+            children="${html`scatter plot`}"
+          />
+          <${Box}
+            headline="Prevalence of incentives"
+            className="width-50"
+            children="${html`radar chart`}"
+          />
+        </div>
       </div>
     </div>
   `;
