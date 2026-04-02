@@ -12,19 +12,19 @@ const FILTERS = [
     defaultValue: "Principal",
   },
   { key: "team", label: "Team", dataField: "team", defaultValue: "Deal team" },
-  { key: "region", label: "Region", dataField: "region", defaultValue: "UK" },
-  {
-    key: "strategy",
-    label: "Strategy",
-    dataField: "strategy",
-    defaultValue: "Buyout",
-  },
   {
     key: "AUMband",
     label: "AUM Band",
     dataField: "AUMband",
     defaultValue: "50-100",
   },
+  {
+    key: "strategy",
+    label: "Strategy",
+    dataField: "strategy",
+    defaultValue: "Buyout",
+  },
+  { key: "region", label: "Region", dataField: "region", defaultValue: "UK" },
 ];
 
 export function Page({ assetClass }) {
@@ -152,7 +152,10 @@ export function Page({ assetClass }) {
         <div class="section section-1">
           <${Box}
             headline="${`${filterSelected["seniority"]}, ${filterSelected["team"]} `}"
-            children="${html`<div>
+            className="section-1-left"
+            children="${html`<div
+              style="display: flex; flex-direction: column; gap: 16px;"
+            >
               <p class="text-body">
                 Responsible for sourcing transactions, leading due diligence and
                 negotiations, and driving value creation in portfolio companies

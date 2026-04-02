@@ -6,7 +6,7 @@ export function FilterContainer({ filters }) {
       const filterName = filter.label;
       const filterValue = filter.value;
       return html`
-        <div key=${index}>
+        <div key=${index} class="filter">
           <label for=${filterName}>${filterName}</label>
           <select
             id=${filterName}
