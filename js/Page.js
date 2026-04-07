@@ -4,6 +4,8 @@ import { FilterContainer } from "./FilterContainer.js";
 import { Box } from "./Box.js";
 import { DataHighlight } from "./DataHighlight.js";
 import { Table } from "./Table.js";
+import { Scatterplot } from "./Scatterplot.js";
+import { Radarchart } from "./Radarchart.js";
 
 const FILTERS = [
   {
@@ -234,12 +236,12 @@ export function Page({ assetClass }) {
           <${Box}
             headline="Compensation distribution"
             className="width-50"
-            children="${html`scatter plot`}"
+            children="${html`<${Scatterplot} />`}"
           />
           <${Box}
             headline="Prevalence of incentives"
             className="width-50"
-            children="${html`radar chart`}"
+            children="${html`<${Radarchart} />`}"
           />
         </div>
       </div>
