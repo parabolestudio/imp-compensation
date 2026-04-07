@@ -40,78 +40,76 @@ export function Page({ assetClass }) {
 
   const [dataFiltered, setDataFiltered] = useState([]);
 
-  const loadData = true;
+  const loadData = false;
 
   useEffect(() => {
-    if (!loadData) {
-      return;
-    }
+    if (loadData) {
+      // fetch main data sheet and format it for use in the app
+      fetchGoogleSheetCSV("main-data")
+        .then((rawData) => {
+          const formattedData = rawData.map((row) => {
+            return {
+              assetClass: row["Asset class"],
+              seniority: row["Seniority"],
+              team: row["Team"],
+              region: row["Region"],
+              strategy: row["Strategy"],
+              AUMband: row["AUM band ($bn)"],
+              numberOfCompanies: +row["Number of firms"],
+              numberOfSamples: +row["Number of respondents"].replace(/\r/g, ""),
+              percentile: row["Percentile"],
+            };
+            // AUM band
+            // Buyout_ref
+            // Comp type
+            // Data_availability
+            // Distressed_ref
+            // Final 2026 value
+            // Infra_ref
+            // RE ratio
+            // Role
+            // SC discount
+            // Secondaries discount
+          });
 
-    // fetch main data sheet and format it for use in the app
-    fetchGoogleSheetCSV("main-data")
-      .then((rawData) => {
-        const formattedData = rawData.map((row) => {
-          return {
-            assetClass: row["Asset class"],
-            seniority: row["Seniority"],
-            team: row["Team"],
-            region: row["Region"],
-            strategy: row["Strategy"],
-            AUMband: row["AUM band ($bn)"],
-            numberOfCompanies: +row["Number of firms"],
-            numberOfSamples: +row["Number of respondents"].replace(/\r/g, ""),
-            percentile: row["Percentile"],
-          };
-          // AUM band
-          // Buyout_ref
-          // Comp type
-          // Data_availability
-          // Distressed_ref
-          // Final 2026 value
-          // Infra_ref
-          // RE ratio
-          // Role
-          // SC discount
-          // Secondaries discount
+          console.log("Formatted data:", formattedData);
+
+          // get filter options for the filters based on the data
+          const newOptions = Object.fromEntries(
+            FILTERS.map((f) => [
+              f.key,
+              [...new Set(formattedData.map((row) => row[f.dataField]))].map(
+                (value) => ({ value, label: value }),
+              ),
+            ]),
+          );
+          setFilterOptions(newOptions);
+
+          const filteredByAssetClass = formattedData.filter(
+            (row) => row.assetClass === assetClass,
+          );
+
+          setDataForAssetClass(filteredByAssetClass);
+        })
+        .catch((error) => {
+          console.error("Error fetching sheet data (main data):", error);
         });
 
-        console.log("Formatted data:", formattedData);
-
-        // get filter options for the filters based on the data
-        const newOptions = Object.fromEntries(
-          FILTERS.map((f) => [
-            f.key,
-            [...new Set(formattedData.map((row) => row[f.dataField]))].map(
-              (value) => ({ value, label: value }),
-            ),
-          ]),
-        );
-        setFilterOptions(newOptions);
-
-        const filteredByAssetClass = formattedData.filter(
-          (row) => row.assetClass === assetClass,
-        );
-
-        setDataForAssetClass(filteredByAssetClass);
-      })
-      .catch((error) => {
-        console.error("Error fetching sheet data (main data):", error);
-      });
-
-    // fetch last data update info sheet
-    fetchGoogleSheetCSV("last-data-update")
-      .then((data) => {
-        if (data.length > 0 && data[0]["value"]) {
-          setLastDataUpdateInfo(data[0]["value"]);
-        } else {
-          console.error(
-            "Last data update info sheet is empty or missing 'value' column",
-          );
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching sheet data (last data update):", error);
-      });
+      // fetch last data update info sheet
+      fetchGoogleSheetCSV("last-data-update")
+        .then((data) => {
+          if (data.length > 0 && data[0]["value"]) {
+            setLastDataUpdateInfo(data[0]["value"]);
+          } else {
+            console.error(
+              "Last data update info sheet is empty or missing 'value' column",
+            );
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching sheet data (last data update):", error);
+        });
+    }
   }, []);
 
   // Apply filters to the data for the selected asset class
@@ -129,13 +127,13 @@ export function Page({ assetClass }) {
     dataFiltered,
   );
 
-  if (!dataForAssetClass || dataForAssetClass.length === 0) {
-    return html`
-      <div class="page">
-        <p>Loading data...</p>
-      </div>
-    `;
-  }
+  // if (!dataForAssetClass || dataForAssetClass.length === 0) {
+  //   return html`
+  //     <div class="page">
+  //       <p>Loading data...</p>
+  //     </div>
+  //   `;
+  // }
 
   return html`
     <div class="custom-page">
@@ -172,6 +170,7 @@ export function Page({ assetClass }) {
         <div class="section section-1">
           <${Box}
             headline="${`${filterSelected["seniority"]}, ${filterSelected["team"]} `}"
+            headlineIcon="head"
             className="section-1-left"
             children="${html`<div
               style="display: flex; flex-direction: column; gap: 16px;"
@@ -197,6 +196,7 @@ export function Page({ assetClass }) {
           />
           <div class="section-1-right">
             <${Box}
+              headlineIcon="house"
               className="bg-dark"
               children="${html`<div>
                 <p class="text-big-numbers-large">XXX</p>
@@ -204,6 +204,7 @@ export function Page({ assetClass }) {
               </div>`}"
             />
             <${Box}
+              headlineIcon="data"
               children="${html`<div>
                 <p class="text-big-numbers-large">XXX</p>
                 <p class="text-tags-large">Data points in Sample</p>

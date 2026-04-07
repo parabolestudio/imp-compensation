@@ -172,6 +172,15 @@
       display: flex;
       flex-direction: row;
       justify-content: space-between;
+
+      h2 {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .box-header-icon {
+        display: flex;
+      }
     }
     .box-content {
       padding: 32px;
