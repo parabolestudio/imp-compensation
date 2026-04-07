@@ -49,8 +49,8 @@ const SHEET_ID =
   "2PACX-1vQ1FvDcBobI1J7kYnOCj41USZlDAkgwvkkobrdtJZ5JYcDmtqz9wMfL2SU9ShV6frYaYOtCVfVwnJba";
 
 const SHEET_TAB_IDS = {
-  "last-data-update": "255109729",
   "main-data": "1439029939",
+  "last-data-update": "763135013",
 };
 
 function getSheetUrl(tabName) {

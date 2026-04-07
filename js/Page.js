@@ -29,6 +29,7 @@ const FILTERS = [
 
 export function Page({ assetClass }) {
   const [dataForAssetClass, setDataForAssetClass] = useState([]);
+  const [lastDataUpdateInfo, setLastDataUpdateInfo] = useState(null);
 
   const [filterSelected, setFilterSelected] = useState(
     Object.fromEntries(FILTERS.map((f) => [f.key, f.defaultValue])),
@@ -45,6 +46,8 @@ export function Page({ assetClass }) {
     if (!loadData) {
       return;
     }
+
+    // fetch main data sheet and format it for use in the app
     fetchGoogleSheetCSV("main-data")
       .then((rawData) => {
         const formattedData = rawData.map((row) => {
@@ -94,6 +97,21 @@ export function Page({ assetClass }) {
       .catch((error) => {
         console.error("Error fetching sheet data (main data):", error);
       });
+
+    // fetch last data update info sheet
+    fetchGoogleSheetCSV("last-data-update")
+      .then((data) => {
+        if (data.length > 0 && data[0]["value"]) {
+          setLastDataUpdateInfo(data[0]["value"]);
+        } else {
+          console.error(
+            "Last data update info sheet is empty or missing 'value' column",
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching sheet data (last data update):", error);
+      });
   }, []);
 
   // Apply filters to the data for the selected asset class
@@ -125,10 +143,12 @@ export function Page({ assetClass }) {
         <div class="header-top">
           <h1>${assetClass} compensation levels</h1>
           <div class="header-top-right">
-            <div>
-              <p class="text-tags-large">Last update</p>
-              <p class="text-buttons">QX 2026</p>
-            </div>
+            ${lastDataUpdateInfo
+              ? html`<div>
+                  <p class="text-tags-large">Last update</p>
+                  <p class="text-buttons">${lastDataUpdateInfo}</p>
+                </div>`
+              : null}
             <button onclick=${() => console.log("export data")}>
               Export data
             </button>
