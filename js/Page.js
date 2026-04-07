@@ -3,6 +3,7 @@ import { fetchGoogleSheetCSV } from "./dataLoader.js";
 import { FilterContainer } from "./FilterContainer.js";
 import { Box } from "./Box.js";
 import { DataHighlight } from "./DataHighlight.js";
+import { Table } from "./Table.js";
 
 const FILTERS = [
   {
@@ -40,7 +41,7 @@ export function Page({ assetClass }) {
 
   const [dataFiltered, setDataFiltered] = useState([]);
 
-  const loadData = true;
+  const loadData = false;
 
   useEffect(() => {
     if (loadData) {
@@ -58,13 +59,17 @@ export function Page({ assetClass }) {
               numberOfCompanies: +row["Number of firms"],
               numberOfSamples: +row["Number of respondents"].replace(/\r/g, ""),
               percentile: row["Percentile"],
+              compensationValue: +row["Final 2026 value"]
+                .replace("£", "")
+                .replace(",", "")
+                .replace(/\r/g, ""), // TODO: replace all currency symbols and commas robustly
             };
             // AUM band
             // Buyout_ref
             // Comp type
             // Data_availability
             // Distressed_ref
-            // Final 2026 value
+
             // Infra_ref
             // RE ratio
             // Role
@@ -221,7 +226,7 @@ export function Page({ assetClass }) {
               Values in XXXX</span
             >`}"
             className="no-padding"
-            children="${html`here comes the table`}"
+            children="${html`<${Table} />`}"
           />
         </div>
 
