@@ -40,7 +40,7 @@ export function Page({ assetClass }) {
 
   const [dataFiltered, setDataFiltered] = useState([]);
 
-  const loadData = false;
+  const loadData = true;
 
   useEffect(() => {
     if (loadData) {
@@ -216,7 +216,10 @@ export function Page({ assetClass }) {
         <div class="section section-2">
           <${Box}
             headline="Compensation breakdown"
-            headlineRight="${html`Values in XXXX`}"
+            headlineRight="${html`<span class="text-tags-large"
+              ><div class="circle-green"></div>
+              Values in XXXX</span
+            >`}"
             className="no-padding"
             children="${html`here comes the table`}"
           />

@@ -7,13 +7,14 @@ export function FilterContainer({ filters }) {
       const filterValue = filter.value;
       return html`
         <div key=${index} class="filter">
-          <label for=${filterName}>${filterName}</label>
+          <label class="text-tags-large" for=${filterName}>${filterName}</label>
           <select
             id=${filterName}
             name=${filterName}
             onchange=${(e) => filter.onChange(e.target.value)}
           >
-            ${filter.options.map((option) => {
+            ${filter &&
+            filter.options.map((option) => {
               return html`<option
                 value=${option.value}
                 selected=${option.value === filterValue}
@@ -21,6 +22,9 @@ export function FilterContainer({ filters }) {
                 ${option.label}
               </option>`;
             })}
+            ${!filter.options || filter.options.length === 0
+              ? html`<option value="${filterValue}">${filterValue}</option>`
+              : ""}
           </select>
         </div>
       `;
