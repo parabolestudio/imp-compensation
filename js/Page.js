@@ -233,7 +233,7 @@ export function Page({ assetClass }) {
               Values in XXXX</span
             >`}"
             className="no-padding"
-            children="${html`<${Table} />`}"
+            children="${html`<${Table} data=${dataFiltered} />`}"
           />
         </div>
 

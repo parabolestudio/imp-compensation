@@ -295,6 +295,13 @@
       font-style: normal;
       font-weight: 400;
       line-height: 120%; /* 16.8px */
+
+      &.highlight {
+        background: rgba(235, 235, 235, 0.2);
+      }
+      &.highlightExtra {
+        background: #ebebeb;
+      }
     }
 
     thead {

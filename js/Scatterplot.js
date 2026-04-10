@@ -75,6 +75,47 @@ export function Scatterplot({ data }) {
             `;
           })}
           ${data &&
+          yTicks.map((tick) => {
+            const y = yScale(tick);
+            // format tick labels as K for thousands
+            const formatTick = (tick) => {
+              return tick >= 1000 ? `${tick / 1000}K` : tick;
+            };
+            return html`<g key=${tick}>
+              <line
+                x1="0"
+                y1="${y}"
+                x2="${innerWidth}"
+                y2="${y}"
+                stroke="#E5E7EB"
+              />
+              <text x="-8" y="${y + 4}" text-anchor="end" class="text-chart">
+                ${formatTick(tick)}
+              </text>
+            </g>`;
+          })}
+          ${data &&
+          xTicks.map((tick) => {
+            const x = xScale(tick) + xScale.bandwidth() / 2;
+            const formatTick = (tick) => {
+              if (tick === "Base") {
+                return "Salary";
+              } else if (tick === "Total comp") {
+                return "Total Compensation";
+              }
+              return tick;
+            };
+            return html`<text
+              key=${tick}
+              x="${x}"
+              y="${innerHeight + 20}"
+              text-anchor="middle"
+              class="text-chart"
+            >
+              ${formatTick(tick)}
+            </text>`;
+          })}
+          ${data &&
           data.map((d) => {
             if (d.percentile === "Average") {
               return null;
@@ -118,47 +159,6 @@ export function Scatterplot({ data }) {
                   : d.percentile.replace("percentile", "")}
               </text>`}
             </g>`;
-          })}
-          ${data &&
-          yTicks.map((tick) => {
-            const y = yScale(tick);
-            // format tick labels as K for thousands
-            const formatTick = (tick) => {
-              return tick >= 1000 ? `${tick / 1000}K` : tick;
-            };
-            return html`<g key=${tick}>
-              <line
-                x1="0"
-                y1="${y}"
-                x2="${innerWidth}"
-                y2="${y}"
-                stroke="#E5E7EB"
-              />
-              <text x="-8" y="${y + 4}" text-anchor="end" class="text-chart">
-                ${formatTick(tick)}
-              </text>
-            </g>`;
-          })}
-          ${data &&
-          xTicks.map((tick) => {
-            const x = xScale(tick) + xScale.bandwidth() / 2;
-            const formatTick = (tick) => {
-              if (tick === "Base") {
-                return "Salary";
-              } else if (tick === "Total comp") {
-                return "Total Compensation";
-              }
-              return tick;
-            };
-            return html`<text
-              key=${tick}
-              x="${x}"
-              y="${innerHeight + 20}"
-              text-anchor="middle"
-              class="text-chart"
-            >
-              ${formatTick(tick)}
-            </text>`;
           })}
         </g>
       </svg>
