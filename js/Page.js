@@ -75,7 +75,7 @@ export function Page({ assetClass }) {
 
   const [dataFiltered, setDataFiltered] = useState([]);
 
-  const loadData = false;
+  const loadData = true;
 
   useEffect(() => {
     if (loadData) {
@@ -112,13 +112,15 @@ export function Page({ assetClass }) {
               compensationType: row["Comp type"],
               currency,
               currencySymbol,
-              compensationValue: +row["Final 2026 value"]
-                .replace("£", "")
-                .replace("€", "")
-                .replace("$", "")
-                .replace(",", "")
-                .replace(/\r/g, "")
-                .trim(),
+              compensationValue: row["Final 2026 value"]
+                ? +row["Final 2026 value"]
+                    .replace("£", "")
+                    .replace("€", "")
+                    .replace("$", "")
+                    .replace(",", "")
+                    .replace(/\r/g, "")
+                    .trim()
+                : null,
             };
             // AUM band
             // Buyout_ref
@@ -204,7 +206,43 @@ export function Page({ assetClass }) {
   // }
 
   function handleExport(option) {
-    console.log("Exporting data for option:", option);
+    if (dataForAssetClass.length === 0 || dataFiltered.length === 0) return;
+
+    let dataForExport = null;
+    if (option === "role") {
+      dataForExport = dataFiltered;
+    } else if (option === "team") {
+      // filter data for all filters except seniority, so we get all seniority levels for the selected team
+      dataForExport = dataForAssetClass.filter((row) =>
+        FILTERS.every((f) =>
+          f.key === "seniority"
+            ? true
+            : row[f.dataField] === filterSelected[f.key],
+        ),
+      );
+    }
+
+    const headers = Object.keys(dataForExport[0]);
+    const rows = dataForExport.map((row) =>
+      headers
+        .map((h) => {
+          const val = row[h] ?? "";
+          const str = String(val);
+          return str.includes(",") || str.includes('"') || str.includes("\n")
+            ? `"${str.replace(/"/g, '""')}"`
+            : str;
+        })
+        .join(","),
+    );
+    const csv = [headers.join(","), ...rows].join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `imp-compensation-data-${assetClass.replace(" ", "_").toLowerCase()}-${option}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   return html`
@@ -219,7 +257,9 @@ export function Page({ assetClass }) {
                   <p class="text-buttons">${lastDataUpdateInfo}</p>
                 </div>`
               : null}
-            <button
+            ${dataFiltered &&
+            dataFiltered.length > 0 &&
+            html` <button
               onclick=${() => setShowExportDropdown((prev) => !prev)}
               class="export-button"
             >
@@ -239,7 +279,7 @@ export function Page({ assetClass }) {
                 <button onclick=${() => handleExport("team")}>Team data</button>
                 <button onclick=${() => handleExport("role")}>Role data</button>
               </div>
-            </button>
+            </button>`}
           </div>
         </div>
         <${FilterContainer}
