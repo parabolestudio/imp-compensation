@@ -21,8 +21,7 @@ function formatValue(value) {
   const num = Number(value);
   if (isNaN(num)) return value;
   return num.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
+    style: "decimal",
     maximumFractionDigits: 0,
   });
 }
@@ -71,9 +70,6 @@ export function Table({ data }) {
             <tr>
               <td>${label}</td>
               ${PERCENTILES.map((p) => {
-                console.log(
-                  `Getting value for comp type "${compType}" and percentile "${p}"`,
-                );
                 let classNames = "";
                 if (
                   (p === "50th percentile" || p === "Average") &&

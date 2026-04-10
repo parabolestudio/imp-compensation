@@ -51,6 +51,22 @@ export function Page({ assetClass }) {
       fetchGoogleSheetCSV("main-data")
         .then((rawData) => {
           const formattedData = rawData.map((row) => {
+            // detect currency from the "Final 2026 value" column (assuming it's consistent across the sheet)
+            // and store it in a new field called "currency"
+            const value = row["Final 2026 value"];
+            let currency = null;
+            let currencySymbol = null;
+            if (value.includes("£")) {
+              currency = "GBP";
+              currencySymbol = "£";
+            } else if (value.includes("€")) {
+              currency = "EUR";
+              currencySymbol = "€";
+            } else if (value.includes("$")) {
+              currency = "USD";
+              currencySymbol = "$";
+            }
+
             return {
               assetClass: row["Asset class"],
               seniority: row["Seniority"],
@@ -61,17 +77,22 @@ export function Page({ assetClass }) {
               numberOfCompanies: +row["Number of firms"],
               numberOfSamples: +row["Number of respondents"].replace(/\r/g, ""),
               percentile: row["Percentile"],
+              compensationType: row["Comp type"],
+              currency,
+              currencySymbol,
               compensationValue: +row["Final 2026 value"]
                 .replace("£", "")
+                .replace("€", "")
+                .replace("$", "")
                 .replace(",", "")
-                .replace(/\r/g, ""), // TODO: replace all currency symbols and commas robustly
-              compensationType: row["Comp type"],
+                .replace(/\r/g, "")
+                .trim(),
             };
+
             // AUM band
             // Buyout_ref
             // Data_availability
             // Distressed_ref
-
             // Infra_ref
             // RE ratio
             // Role
@@ -228,10 +249,13 @@ export function Page({ assetClass }) {
         <div class="section section-2">
           <${Box}
             headline="Compensation breakdown"
-            headlineRight="${html`<span class="text-tags-large"
-              ><div class="circle-green"></div>
-              Values in XXXX</span
-            >`}"
+            headlineRight="${dataFiltered[0]?.currency
+              ? html`<span class="text-tags-large"
+                  ><div class="circle-green"></div>
+                  Values in ${dataFiltered[0]?.currency}${" "}
+                  (${dataFiltered[0]?.currencySymbol})</span
+                >`
+              : null}"
             className="no-padding"
             children="${html`<${Table} data=${dataFiltered} />`}"
           />
