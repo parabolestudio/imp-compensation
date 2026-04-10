@@ -21,13 +21,13 @@ const FILTERS = [
     dataField: "AUMband",
     defaultValue: "50-100",
   },
+  { key: "region", label: "Region", dataField: "region", defaultValue: "UK" },
   {
     key: "strategy",
     label: "Strategy",
     dataField: "strategy",
-    defaultValue: "Buyout",
+    defaultValue: "PE aggregate",
   },
-  { key: "region", label: "Region", dataField: "region", defaultValue: "UK" },
 ];
 
 export function Page({ assetClass }) {
@@ -43,7 +43,7 @@ export function Page({ assetClass }) {
 
   const [dataFiltered, setDataFiltered] = useState([]);
 
-  const loadData = false;
+  const loadData = true;
 
   useEffect(() => {
     if (loadData) {
@@ -86,7 +86,12 @@ export function Page({ assetClass }) {
             FILTERS.map((f) => [
               f.key,
               [...new Set(formattedData.map((row) => row[f.dataField]))].map(
-                (value) => ({ value, label: value }),
+                (value) => {
+                  if (value === "PE aggregate") {
+                    return { value, label: "All" };
+                  }
+                  return { value, label: value };
+                },
               ),
             ]),
           );
