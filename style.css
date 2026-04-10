@@ -73,6 +73,25 @@
     font-weight: 400;
     line-height: 140%; /* 25.2px */
   }
+  .text-chart {
+    color: #0d121c;
+    font-family: "Archivo Narrow";
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 16.8px */
+  }
+  .text-annotations {
+    /* color: #738287;
+    fill: #738287; */
+
+    /* Annotations */
+    font-family: "Archivo Narrow";
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%; /* 14.4px */
+  }
 
   button {
     border-radius: 4px;

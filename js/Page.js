@@ -65,10 +65,10 @@ export function Page({ assetClass }) {
                 .replace("£", "")
                 .replace(",", "")
                 .replace(/\r/g, ""), // TODO: replace all currency symbols and commas robustly
+              compensationType: row["Comp type"],
             };
             // AUM band
             // Buyout_ref
-            // Comp type
             // Data_availability
             // Distressed_ref
 
@@ -241,7 +241,7 @@ export function Page({ assetClass }) {
           <${Box}
             headline="Compensation distribution"
             className="width-50"
-            children="${html`<${Scatterplot} />`}"
+            children="${html`<${Scatterplot} data=${dataFiltered} />`}"
           />
           <${Box}
             headline="Prevalence of incentives"
