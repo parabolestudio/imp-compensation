@@ -17,9 +17,27 @@ const FILTERS = [
   { key: "team", label: "Team", dataField: "team", defaultValue: "Deal team" },
   {
     key: "AUMband",
-    label: "AUM Band",
+    label: "AUM Range",
     dataField: "AUMband",
     defaultValue: "50-100",
+    formatValueLabel: (value) => {
+      if (value === "0-2") return "< $2B";
+      if (value === "2-10") return "$2B - $10B";
+      if (value === "10-50") return "$10B - $50B";
+      if (value === "50-100") return "$50B - $100B";
+      if (value === "100+") return "> $100B";
+      return value;
+    },
+    sortOptions: (a, b) => {
+      const order = [
+        "< $2B",
+        "$2B - $10B",
+        "$10B - $50B",
+        "$50B - $100B",
+        "> $100B",
+      ];
+      return order.indexOf(a.label) - order.indexOf(b.label);
+    },
   },
   { key: "region", label: "Region", dataField: "region", defaultValue: "UK" },
   {
@@ -27,6 +45,7 @@ const FILTERS = [
     label: "Strategy",
     dataField: "strategy",
     defaultValue: "PE aggregate",
+    formatValueLabel: (value) => (value === "PE aggregate" ? "All" : value),
   },
 ];
 
@@ -38,7 +57,19 @@ export function Page({ assetClass }) {
     Object.fromEntries(FILTERS.map((f) => [f.key, f.defaultValue])),
   );
   const [filterOptions, setFilterOptions] = useState(
-    Object.fromEntries(FILTERS.map((f) => [f.key, []])),
+    Object.fromEntries(
+      FILTERS.map((f) => [
+        f.key,
+        [
+          {
+            value: f.defaultValue,
+            label: f.formatValueLabel
+              ? f.formatValueLabel(f.defaultValue)
+              : f.defaultValue,
+          },
+        ],
+      ]),
+    ),
   );
 
   const [dataFiltered, setDataFiltered] = useState([]);
@@ -88,7 +119,6 @@ export function Page({ assetClass }) {
                 .replace(/\r/g, "")
                 .trim(),
             };
-
             // AUM band
             // Buyout_ref
             // Data_availability
@@ -106,14 +136,18 @@ export function Page({ assetClass }) {
           const newOptions = Object.fromEntries(
             FILTERS.map((f) => [
               f.key,
-              [...new Set(formattedData.map((row) => row[f.dataField]))].map(
-                (value) => {
-                  if (value === "PE aggregate") {
-                    return { value, label: "All" };
-                  }
-                  return { value, label: value };
-                },
-              ),
+              [...new Set(formattedData.map((row) => row[f.dataField]))]
+                .map((value) => {
+                  return {
+                    value,
+                    label: f.formatValueLabel
+                      ? f.formatValueLabel(value)
+                      : value,
+                  };
+                })
+                .sort(
+                  f.sortOptions || ((a, b) => a.label.localeCompare(b.label)),
+                ),
             ]),
           );
           setFilterOptions(newOptions);
