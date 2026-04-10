@@ -52,6 +52,7 @@ const FILTERS = [
 export function Page({ assetClass }) {
   const [dataForAssetClass, setDataForAssetClass] = useState([]);
   const [lastDataUpdateInfo, setLastDataUpdateInfo] = useState(null);
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
 
   const [filterSelected, setFilterSelected] = useState(
     Object.fromEntries(FILTERS.map((f) => [f.key, f.defaultValue])),
@@ -74,7 +75,7 @@ export function Page({ assetClass }) {
 
   const [dataFiltered, setDataFiltered] = useState([]);
 
-  const loadData = true;
+  const loadData = false;
 
   useEffect(() => {
     if (loadData) {
@@ -202,6 +203,10 @@ export function Page({ assetClass }) {
   //   `;
   // }
 
+  function handleExport(option) {
+    console.log("Exporting data for option:", option);
+  }
+
   return html`
     <div class="custom-page">
       <div class="section header">
@@ -214,8 +219,26 @@ export function Page({ assetClass }) {
                   <p class="text-buttons">${lastDataUpdateInfo}</p>
                 </div>`
               : null}
-            <button onclick=${() => console.log("export data")}>
-              Export data
+            <button
+              onclick=${() => setShowExportDropdown((prev) => !prev)}
+              class="export-button"
+            >
+              <svg width="10" height="10" fill="none" viewBox="0 0 10 10">
+                <path
+                  fill="#fff"
+                  d="M4.667 7 1.75 4.083l.817-.846 1.516 1.517V0H5.25v4.754l1.517-1.516.816.845L4.667 7m-3.5 2.333c-.321 0-.596-.114-.824-.342A1.123 1.123 0 0 1 0 8.167v-1.75h1.167v1.75h7v-1.75h1.166v1.75c0 .32-.114.595-.342.824a1.123 1.123 0 0 1-.824.342h-7"
+                  class="Icon"
+                />
+              </svg>
+              <span>Export data</span>
+              <div
+                class="export-dropdown"
+                style="display: ${showExportDropdown ? "flex" : "none"};"
+              >
+                <p class="text-tags-large">Export</p>
+                <button onclick=${() => handleExport("team")}>Team data</button>
+                <button onclick=${() => handleExport("role")}>Role data</button>
+              </div>
             </button>
           </div>
         </div>

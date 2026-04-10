@@ -110,6 +110,40 @@
     gap: 7.99px;
 
     cursor: pointer;
+
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: rgba(0, 33, 46, 0.9);
+    }
+  }
+
+  .export-button {
+    position: relative;
+  }
+
+  .export-dropdown {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 30px 16px;
+
+    border-radius: 4px;
+    border: 1px solid rgba(198, 198, 205, 0.2);
+    background: #fff;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+    margin-top: 4px;
+    top: 100%;
+    right: -2px;
+    width: 230px;
+
+    button {
+      width: 100%;
+      justify-content: center;
+    }
   }
 
   .header {
