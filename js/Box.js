@@ -1,4 +1,5 @@
 import { html } from "./preact-htm.js";
+import { REPO_URL } from "./helper.js";
 
 export function Box({
   headline,
@@ -9,11 +10,14 @@ export function Box({
 }) {
   let icon = null;
   if (headlineIcon === "head") {
-    icon = html`<img src="./assets/icon_head.svg" alt="Head icon" />`;
+    icon = html`<img src="${REPO_URL}/assets/icon_head.svg" alt="Head icon" />`;
   } else if (headlineIcon === "house") {
-    icon = html`<img src="./assets/icon_house.svg" alt="House icon" />`;
+    icon = html`<img
+      src="${REPO_URL}/assets/icon_house.svg"
+      alt="House icon"
+    />`;
   } else if (headlineIcon === "data") {
-    icon = html`<img src="./assets/icon_data.svg" alt="Data icon" />`;
+    icon = html`<img src="${REPO_URL}/assets/icon_data.svg" alt="Data icon" />`;
   }
   return html`<div className=${`box ${className || ""}`}>
     <div class="box-header">
