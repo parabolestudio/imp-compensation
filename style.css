@@ -146,6 +146,37 @@
     }
   }
 
+  .subnav-asset-class {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    padding: 0 32px;
+
+    .subnav-button {
+      background: transparent;
+      color: #738287;
+      border-radius: 0;
+      border: none;
+      border-bottom: 2px solid transparent;
+      height: 48px;
+
+      font-family: Inter;
+      font-size: 14px;
+      font-style: normal;
+      font-weight: 500;
+      line-height: 20.25px; /* 144.643% */
+      transition:
+        color 0.2s ease,
+        border-bottom-color 0.2s ease;
+
+      &.selected {
+        color: #c741af;
+        font-weight: 700;
+        border-bottom: 2px solid #c741af;
+      }
+    }
+  }
+
   .header {
     display: flex;
     flex-direction: column;

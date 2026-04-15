@@ -7,6 +7,21 @@ import { Table } from "./Table.js";
 import { Scatterplot } from "./Scatterplot.js";
 import { Radarchart } from "./Radarchart.js";
 
+const ASSET_CLASSES = [
+  {
+    label: "Private equity",
+    dataKey: "Private equity",
+  },
+  {
+    label: "Private debt",
+    dataKey: "Private debt",
+  },
+  {
+    label: "Real assets",
+    dataKey: "Real assets",
+  },
+];
+
 const FILTERS = [
   {
     key: "seniority",
@@ -49,7 +64,11 @@ const FILTERS = [
   },
 ];
 
-export function Page({ assetClass }) {
+export function Page() {
+  const [selectedAssetClass, setSelectedAssetClass] = useState(
+    ASSET_CLASSES[0],
+  );
+  const [dataAcrossAssetClasses, setDataAcrossAssetClasses] = useState([]);
   const [dataForAssetClass, setDataForAssetClass] = useState([]);
   const [lastDataUpdateInfo, setLastDataUpdateInfo] = useState(null);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
@@ -134,6 +153,7 @@ export function Page({ assetClass }) {
           });
 
           console.log("Formatted data:", formattedData);
+          setDataAcrossAssetClasses(formattedData);
 
           // get filter options for the filters based on the data
           const newOptions = Object.fromEntries(
@@ -156,9 +176,8 @@ export function Page({ assetClass }) {
           setFilterOptions(newOptions);
 
           const filteredByAssetClass = formattedData.filter(
-            (row) => row.assetClass === assetClass,
+            (row) => row.assetClass === selectedAssetClass.dataKey,
           );
-
           setDataForAssetClass(filteredByAssetClass);
         })
         .catch((error) => {
@@ -189,6 +208,30 @@ export function Page({ assetClass }) {
     );
     setDataFiltered(filtered);
   }, [dataForAssetClass, filterSelected]);
+
+  useEffect(() => {
+    // when asset class changes, filter general data for the new asset class
+    const filteredByAssetClass = dataAcrossAssetClasses.filter(
+      (row) => row.assetClass === selectedAssetClass.dataKey,
+    );
+    setDataForAssetClass(filteredByAssetClass);
+
+    // get filter options for the filters based on the data
+    const newOptions = Object.fromEntries(
+      FILTERS.map((f) => [
+        f.key,
+        [...new Set(dataAcrossAssetClasses.map((row) => row[f.dataField]))]
+          .map((value) => {
+            return {
+              value,
+              label: f.formatValueLabel ? f.formatValueLabel(value) : value,
+            };
+          })
+          .sort(f.sortOptions || ((a, b) => a.label.localeCompare(b.label))),
+      ]),
+    );
+    setFilterOptions(newOptions);
+  }, [selectedAssetClass, dataAcrossAssetClasses]);
 
   console.log(
     "Page component data:",
@@ -240,16 +283,28 @@ export function Page({ assetClass }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `imp-compensation-data-${assetClass.replace(" ", "_").toLowerCase()}-${option}.csv`;
+    a.download = `imp-compensation-data-${selectedAssetClass.label.replace(" ", "_").toLowerCase()}-${option}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
 
   return html`
     <div class="custom-page">
+      <div class="subnav-asset-class">
+        ${ASSET_CLASSES.map((ac) => {
+          const isSelected = ac.dataKey === selectedAssetClass.dataKey;
+          return html`<button
+            class=${`subnav-button ${isSelected ? "selected" : ""}`}
+            onclick=${() => setSelectedAssetClass(ac)}
+          >
+            ${ac.label}
+          </button>`;
+        })}
+      </div>
+
       <div class="section header">
         <div class="header-top">
-          <h1>${assetClass} compensation levels</h1>
+          <h1>${selectedAssetClass.label} compensation levels</h1>
           <div class="header-top-right">
             ${lastDataUpdateInfo
               ? html`<div>

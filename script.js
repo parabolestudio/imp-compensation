@@ -22,5 +22,4 @@ function renderPage(page) {
 
 renderPage({
   id: "custom-page-container-compensation-report",
-  assetClass: "Private equity",
 });
