@@ -361,12 +361,12 @@ export function Page({ assetClass }) {
         <div class="section section-3">
           <${Box}
             headline="Compensation distribution"
-            className="width-50"
+            className="box-width-50"
             children="${html`<${Scatterplot} data=${dataFiltered} />`}"
           />
           <${Box}
             headline="Prevalence of incentives"
-            className="width-50"
+            className="box-width-50"
             children="${html`<${Radarchart} />`}"
           />
         </div>
