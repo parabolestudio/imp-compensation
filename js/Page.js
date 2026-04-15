@@ -34,7 +34,7 @@ const FILTERS = [
     key: "AUMband",
     label: "AUM Range",
     dataField: "AUMband",
-    defaultValue: "50-100",
+    defaultValue: "2-10",
     formatValueLabel: (value) => {
       if (value === "0-2") return "< $2B";
       if (value === "2-10") return "$2B - $10B";
@@ -155,11 +155,16 @@ export function Page() {
           console.log("Formatted data:", formattedData);
           setDataAcrossAssetClasses(formattedData);
 
+          const filteredByAssetClass = formattedData.filter(
+            (row) => row.assetClass === selectedAssetClass.dataKey,
+          );
+          setDataForAssetClass(filteredByAssetClass);
+
           // get filter options for the filters based on the data
           const newOptions = Object.fromEntries(
             FILTERS.map((f) => [
               f.key,
-              [...new Set(formattedData.map((row) => row[f.dataField]))]
+              [...new Set(filteredByAssetClass.map((row) => row[f.dataField]))]
                 .map((value) => {
                   return {
                     value,
@@ -174,11 +179,6 @@ export function Page() {
             ]),
           );
           setFilterOptions(newOptions);
-
-          const filteredByAssetClass = formattedData.filter(
-            (row) => row.assetClass === selectedAssetClass.dataKey,
-          );
-          setDataForAssetClass(filteredByAssetClass);
         })
         .catch((error) => {
           console.error("Error fetching sheet data (main data):", error);
@@ -207,7 +207,7 @@ export function Page() {
       FILTERS.every((f) => row[f.dataField] === filterSelected[f.key]),
     );
     setDataFiltered(filtered);
-  }, [dataForAssetClass, filterSelected]);
+  }, [dataForAssetClass, filterSelected, filterOptions]);
 
   useEffect(() => {
     // when asset class changes, filter general data for the new asset class
@@ -220,7 +220,7 @@ export function Page() {
     const newOptions = Object.fromEntries(
       FILTERS.map((f) => [
         f.key,
-        [...new Set(dataAcrossAssetClasses.map((row) => row[f.dataField]))]
+        [...new Set(filteredByAssetClass.map((row) => row[f.dataField]))]
           .map((value) => {
             return {
               value,
@@ -231,6 +231,11 @@ export function Page() {
       ]),
     );
     setFilterOptions(newOptions);
+
+    const filtered = filteredByAssetClass.filter((row) =>
+      FILTERS.every((f) => row[f.dataField] === filterSelected[f.key]),
+    );
+    setDataFiltered(filtered);
   }, [selectedAssetClass, dataAcrossAssetClasses]);
 
   console.log(
