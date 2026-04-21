@@ -70,6 +70,8 @@ export function Page() {
   );
   const [dataAcrossAssetClasses, setDataAcrossAssetClasses] = useState([]);
   const [dataForAssetClass, setDataForAssetClass] = useState([]);
+  const [dataRoleBox, setDataRoleBox] = useState([]);
+  const [dataRoleBoxFiltered, setDataRoleBoxFiltered] = useState([]);
   const [lastDataUpdateInfo, setLastDataUpdateInfo] = useState(null);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
 
@@ -184,6 +186,31 @@ export function Page() {
           console.error("Error fetching sheet data (main data):", error);
         });
 
+      // fetch role box data
+      fetchGoogleSheetCSV("role-box-data")
+        .then((rawRoleData) => {
+          const formattedRoleData = rawRoleData.map((row) => {
+            return {
+              team: row["Team"],
+              role: row["Role"],
+              seniority: row["Seniority"],
+              region: row["Region"],
+              assetClass: row["Asset class"],
+              description: row["Description"],
+              typicalExperience: row["Typical experience"],
+              directReports: row["Direct reports"],
+              carryEligible: row["Carry eligible"],
+              shareOfWomen: +row["Share of women"],
+            };
+          });
+
+          console.log("Formatted role data:", formattedRoleData);
+          setDataRoleBox(formattedRoleData);
+        })
+        .catch((error) => {
+          console.error("Error fetching sheet data (role box data):", error);
+        });
+
       // fetch last data update info sheet
       fetchGoogleSheetCSV("last-data-update")
         .then((data) => {
@@ -208,6 +235,17 @@ export function Page() {
     );
     setDataFiltered(filtered);
   }, [dataForAssetClass, filterSelected, filterOptions]);
+
+  // Apply filters to the role box data
+  useEffect(() => {
+    const filtered = dataRoleBox.filter(
+      (row) =>
+        row.seniority === filterSelected.seniority &&
+        row.team ===
+          filterSelected.team.replace("teams", "").replace("team", "").trim(),
+    );
+    setDataRoleBoxFiltered(filtered);
+  }, [dataRoleBox, filterSelected, filterOptions]);
 
   useEffect(() => {
     // when asset class changes, filter general data for the new asset class
@@ -241,8 +279,12 @@ export function Page() {
   console.log(
     "Page component data:",
     dataForAssetClass,
-    "Filtered data:",
+    "Filtered data general:",
     dataFiltered,
+    "Role box data:",
+    dataRoleBox,
+    "Filtered role box data:",
+    dataRoleBoxFiltered,
   );
 
   // if (!dataForAssetClass || dataForAssetClass.length === 0) {
