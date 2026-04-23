@@ -1,6 +1,47 @@
 import { html } from "./preact-htm.js";
 
 export function Scatterplot({ data }) {
+  const normalizedData = Array.isArray(data)
+    ? data.flatMap((entry) => {
+        // Support the old shape as a fallback.
+        if (
+          entry &&
+          entry.compensationType != null &&
+          entry.compensationValue != null
+        ) {
+          return [
+            {
+              compType: entry.compensationType,
+              percentile: entry.percentile,
+              value: Number(entry.compensationValue),
+            },
+          ];
+        }
+
+        return [
+          {
+            compType: "base",
+            percentile: entry?.percentile,
+            value: Number(entry?.compValueBase),
+          },
+          {
+            compType: "bonus",
+            percentile: entry?.percentile,
+            value: Number(entry?.compValueBonus),
+          },
+          {
+            compType: "totalComp",
+            percentile: entry?.percentile,
+            value: Number(entry?.compValueTotal),
+          },
+        ];
+      })
+    : [];
+
+  const chartData = normalizedData.filter(
+    (d) => d.percentile && Number.isFinite(d.value),
+  );
+
   // vis dimensions
   const visContainer = document.querySelector(`#scatterplot-container`);
   let width =
@@ -11,14 +52,17 @@ export function Scatterplot({ data }) {
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
 
+  const compTypeOrder = ["base", "bonus", "totalComp"];
+  const maxValue = d3.max(chartData, (d) => d.value) || 0;
+
   const yScale = d3
     .scaleLinear()
-    .domain([0, d3.max(data, (d) => d.compensationValue)])
+    .domain([0, maxValue > 0 ? maxValue : 1])
     .range([innerHeight, 0])
     .nice();
   const xScale = d3
     .scaleBand()
-    .domain(data.map((d) => d.compensationType))
+    .domain(compTypeOrder)
     .range([0, innerWidth])
     .padding(0.1);
 
@@ -29,11 +73,11 @@ export function Scatterplot({ data }) {
   const backgroundRectWidth = 12;
 
   const dataByCompType = {};
-  data.forEach((d) => {
-    if (!dataByCompType[d.compensationType]) {
-      dataByCompType[d.compensationType] = [];
+  chartData.forEach((d) => {
+    if (!dataByCompType[d.compType]) {
+      dataByCompType[d.compType] = [];
     }
-    dataByCompType[d.compensationType].push(d);
+    dataByCompType[d.compType].push(d);
   });
 
   return html`
@@ -56,13 +100,15 @@ export function Scatterplot({ data }) {
               );
               return null;
             }
-            const y10 =
-              yScale(percentile10.compensationValue) + backgroundRectWidth / 2;
-            const y90 =
-              yScale(percentile90.compensationValue) - backgroundRectWidth / 2;
+            const y10 = yScale(percentile10.value) + backgroundRectWidth / 2;
+            const y90 = yScale(percentile90.value) - backgroundRectWidth / 2;
+
+            const xCenter = xScale(compType);
+            if (xCenter == null) return null;
+
             return html`
               <rect
-                x="${xScale(compType) +
+                x="${xCenter +
                 xScale.bandwidth() / 2 -
                 backgroundRectWidth / 2}"
                 y="${y90}"
@@ -98,9 +144,11 @@ export function Scatterplot({ data }) {
           xTicks.map((tick) => {
             const x = xScale(tick) + xScale.bandwidth() / 2;
             const formatTick = (tick) => {
-              if (tick === "Base") {
+              if (tick === "Base" || tick === "base") {
                 return "Salary";
-              } else if (tick === "Total comp") {
+              } else if (tick === "Bonus" || tick === "bonus") {
+                return "Bonus";
+              } else if (tick === "Total comp" || tick === "totalComp") {
                 return "Total Compensation";
               }
               return tick;
@@ -115,14 +163,17 @@ export function Scatterplot({ data }) {
               ${formatTick(tick)}
             </text>`;
           })}
-          ${data &&
-          data.map((d) => {
+          ${chartData &&
+          chartData.map((d) => {
             if (d.percentile === "Average") {
               return null;
             }
 
-            const x = xScale(d.compensationType) + xScale.bandwidth() / 2;
-            const y = yScale(d.compensationValue);
+            const xBand = xScale(d.compType);
+            if (xBand == null) return null;
+
+            const x = xBand + xScale.bandwidth() / 2;
+            const y = yScale(d.value);
 
             return html`<g>
               ${d.percentile === "50th percentile" &&
@@ -144,7 +195,7 @@ export function Scatterplot({ data }) {
                   : "transparent"}"
                 stroke-width="2"
               />
-              ${d.compensationType === "Base" &&
+              ${(d.compType === "Base" || d.compType === "base") &&
               html`<text
                 x="${x + 10}"
                 y="${y + circleRadius / 2 - 1}"

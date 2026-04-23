@@ -10,10 +10,10 @@ const PERCENTILES = [
 ];
 
 const ROWS = [
-  { label: "Salary", compType: "Base" },
-  { label: "Bonus", compType: "Bonus" },
-  { label: "Bonus as % of base", compType: null },
-  { label: "Total Compensation", compType: "Total comp" },
+  { label: "Salary", compType: "base" },
+  { label: "Bonus", compType: "bonus" },
+  { label: "Bonus as % of base", compType: "bonusPercentage" },
+  { label: "Total Compensation", compType: "totalComp" },
 ];
 
 function formatValue(value) {
@@ -29,9 +29,7 @@ function formatValue(value) {
 function getValue(dataByCompType, compType, percentile) {
   const entries = dataByCompType[compType];
   if (!entries) return "XXXX";
-  return formatValue(
-    entries.find((d) => d.percentile === percentile)?.compensationValue,
-  );
+  return formatValue(entries.find((d) => d.percentile === percentile)?.value);
 }
 
 function getPercentile(dataByCompType, compType, percentile) {
@@ -41,13 +39,31 @@ function getPercentile(dataByCompType, compType, percentile) {
 }
 
 export function Table({ data }) {
-  const dataByCompType = {};
-  if (data) {
-    data.forEach((d) => {
-      if (!dataByCompType[d.compensationType]) {
-        dataByCompType[d.compensationType] = [];
-      }
-      dataByCompType[d.compensationType].push(d);
+  const dataByCompType = {
+    base: [],
+    bonus: [],
+    bonusPercentage: [],
+    totalComp: [],
+  };
+
+  if (Array.isArray(data)) {
+    data.forEach((entry) => {
+      dataByCompType.base.push({
+        percentile: entry.percentile,
+        value: entry.compValueBase,
+      });
+      dataByCompType.bonus.push({
+        percentile: entry.percentile,
+        value: entry.compValueBonus,
+      });
+      dataByCompType.totalComp.push({
+        percentile: entry.percentile,
+        value: entry.compValueTotal,
+      });
+      dataByCompType.bonusPercentage.push({
+        percentile: entry.percentile,
+        value: entry.compValueBonusPercentage,
+      });
     });
   }
 

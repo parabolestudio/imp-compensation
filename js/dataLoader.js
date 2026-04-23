@@ -50,6 +50,7 @@ const SHEET_ID =
 
 const SHEET_TAB_IDS = {
   "main-data": "1439029939",
+  "main-data-new": "38414697",
   "role-box-data": "32159509",
   "last-data-update": "763135013",
 };

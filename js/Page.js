@@ -101,57 +101,36 @@ export function Page() {
   useEffect(() => {
     if (loadData) {
       // fetch main data sheet and format it for use in the app
-      fetchGoogleSheetCSV("main-data")
+      fetchGoogleSheetCSV("main-data-new")
         .then((rawData) => {
           const formattedData = rawData.map((row) => {
-            // detect currency from the "Final 2026 value" column (assuming it's consistent across the sheet)
-            // and store it in a new field called "currency"
-            const value = row["Final 2026 value"];
-            let currency = null;
+            let currency = row["Currency"];
             let currencySymbol = null;
-            if (value.includes("£")) {
-              currency = "GBP";
+            if (currency === "GBP") {
               currencySymbol = "£";
-            } else if (value.includes("€")) {
-              currency = "EUR";
+            } else if (currency === "EUR") {
               currencySymbol = "€";
-            } else if (value.includes("$")) {
-              currency = "USD";
+            } else if (currency === "USD") {
               currencySymbol = "$";
             }
 
             return {
               assetClass: row["Asset class"],
               seniority: row["Seniority"],
-              team: row["Team"],
+              team: row["Function"],
               region: row["Region"],
               strategy: row["Strategy"],
               AUMband: row["AUM band ($bn)"],
-              numberOfCompanies: +row["Number of firms"],
-              numberOfSamples: +row["Number of respondents"].replace(/\r/g, ""),
+              numberOfCompanies: +row["No. of firms"],
+              numberOfRespondents: +row["No. of respondents"],
               percentile: row["Percentile"],
-              compensationType: row["Comp type"],
               currency,
               currencySymbol,
-              compensationValue: row["Final 2026 value"]
-                ? +row["Final 2026 value"]
-                    .replace("£", "")
-                    .replace("€", "")
-                    .replace("$", "")
-                    .replace(",", "")
-                    .replace(/\r/g, "")
-                    .trim()
-                : null,
+              compValueBase: +row["Base"].replaceAll(",", ""),
+              compValueBonus: +row["Discretionary"].replaceAll(",", ""),
+              compValueTotal: +row["Total comp"].replaceAll(",", ""),
+              compValueBonusPercentage: row["Disc % of base"],
             };
-            // AUM band
-            // Buyout_ref
-            // Data_availability
-            // Distressed_ref
-            // Infra_ref
-            // RE ratio
-            // Role
-            // SC discount
-            // Secondaries discount
           });
 
           console.log("Formatted data:", formattedData);
