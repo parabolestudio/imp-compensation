@@ -97,7 +97,7 @@ export function Page() {
 
   const [dataFiltered, setDataFiltered] = useState([]);
 
-  const loadData = true;
+  const loadData = false;
 
   useEffect(() => {
     if (loadData) {
