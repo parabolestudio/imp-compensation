@@ -28,9 +28,9 @@ const FILTERS = [
     key: "seniority",
     label: "Seniority",
     dataField: "seniority",
-    defaultValue: "Principal",
+    defaultValue: "Senior Associate",
   },
-  { key: "team", label: "Team", dataField: "team", defaultValue: "Deal team" },
+  { key: "team", label: "Team", dataField: "team", defaultValue: "Compliance" },
   {
     key: "AUMband",
     label: "AUM Range",
