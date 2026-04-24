@@ -7,6 +7,7 @@ export function Box({
   headlineRight,
   className,
   children,
+  showPlaceholder,
 }) {
   let icon = null;
   if (headlineIcon === "head") {
@@ -19,7 +20,9 @@ export function Box({
   } else if (headlineIcon === "data") {
     icon = html`<img src="${REPO_URL}/assets/icon_data.svg" alt="Data icon" />`;
   }
-  return html`<div className=${`box ${className || ""}`}>
+  return html`<div
+    className=${`box ${className || ""} ${showPlaceholder ? "box-placeholder" : ""}`}
+  >
     <div class="box-header">
       <h2>
         ${icon ? html`<div class="box-header-icon">${icon}</div>` : ""}

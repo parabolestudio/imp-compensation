@@ -6,6 +6,7 @@ import { DataHighlight } from "./DataHighlight.js";
 import { Table } from "./Table.js";
 import { Scatterplot } from "./Scatterplot.js";
 import { Radarchart } from "./Radarchart.js";
+import { Loader } from "./Loader.js";
 
 const ASSET_CLASSES = [
   {
@@ -119,6 +120,7 @@ export function Page() {
               seniority: row["Seniority"],
               team: row["Function"],
               region: row["Region"],
+              role: row["Role"],
               strategy: row["Strategy"],
               AUMband: row["AUM band ($bn)"],
               numberOfCompanies: +row["No. of firms"],
@@ -266,14 +268,6 @@ export function Page() {
     dataRoleBoxFiltered,
   );
 
-  // if (!dataForAssetClass || dataForAssetClass.length === 0) {
-  //   return html`
-  //     <div class="page">
-  //       <p>Loading data...</p>
-  //     </div>
-  //   `;
-  // }
-
   function handleExport(option) {
     if (dataForAssetClass.length === 0 || dataFiltered.length === 0) return;
 
@@ -314,20 +308,14 @@ export function Page() {
     URL.revokeObjectURL(url);
   }
 
-  return html`
-    <div class="custom-page">
-      <div class="subnav-asset-class">
-        ${ASSET_CLASSES.map((ac) => {
-          const isSelected = ac.dataKey === selectedAssetClass.dataKey;
-          return html`<button
-            class=${`subnav-button ${isSelected ? "selected" : ""}`}
-            onclick=${() => setSelectedAssetClass(ac)}
-          >
-            ${ac.label}
-          </button>`;
-        })}
-      </div>
+  const allDataLoaded =
+    dataForAssetClass &&
+    dataForAssetClass.length > 0 &&
+    dataRoleBox &&
+    dataRoleBox.length > 0;
 
+  return html`
+    <div class="custom-page ${!allDataLoaded ? "page-placeholder" : ""}">
       <div class="section header">
         <div class="header-top">
           <h1>${selectedAssetClass.label} compensation levels</h1>
@@ -338,8 +326,7 @@ export function Page() {
                   <p class="text-buttons">${lastDataUpdateInfo}</p>
                 </div>`
               : null}
-            ${dataFiltered &&
-            dataFiltered.length > 0 &&
+            ${allDataLoaded &&
             html` <button
               onclick=${() => setShowExportDropdown((prev) => !prev)}
               class="export-button"
@@ -372,17 +359,20 @@ export function Page() {
             onChange: (value) =>
               setFilterSelected((prev) => ({ ...prev, [f.key]: value })),
           }))}
+          showPlaceholder="${!allDataLoaded}"
         />
       </div>
 
       <div
-        style="display: flex; flex-direction: column; gap: 32px; padding: 40px 32px;"
+        style="display: flex; flex-direction: column; gap: 32px; padding: 40px 32px; position: relative;"
       >
+        <${Loader} isLoading=${!allDataLoaded} />
         <div class="section section-1">
           <${Box}
-            headline="${`${filterSelected["seniority"]}, ${filterSelected["team"]} `}"
+            headline="${`${dataFiltered[0]?.role || "Role"}`}"
             headlineIcon="head"
             className="section-1-left"
+            showPlaceholder="${!allDataLoaded}"
             children="${html`<div
               style="display: flex; flex-direction: column; gap: 16px;"
             >
@@ -409,6 +399,7 @@ export function Page() {
             <${Box}
               headlineIcon="house"
               className="bg-dark"
+              showPlaceholder="${!allDataLoaded}"
               children="${html`<div>
                 <p class="text-big-numbers-large">XXX</p>
                 <p class="text-tags-large">Companies in Sample</p>
@@ -416,6 +407,7 @@ export function Page() {
             />
             <${Box}
               headlineIcon="data"
+              showPlaceholder="${!allDataLoaded}"
               children="${html`<div>
                 <p class="text-big-numbers-large">XXX</p>
                 <p class="text-tags-large">Data points in Sample</p>
@@ -435,6 +427,7 @@ export function Page() {
                 >`
               : null}"
             className="no-padding"
+            showPlaceholder="${!allDataLoaded}"
             children="${html`<${Table} data=${dataFiltered} />`}"
           />
         </div>
@@ -443,11 +436,13 @@ export function Page() {
           <${Box}
             headline="Compensation distribution"
             className="box-width-50"
+            showPlaceholder="${!allDataLoaded}"
             children="${html`<${Scatterplot} data=${dataFiltered} />`}"
           />
           <${Box}
             headline="Prevalence of incentives"
             className="box-width-50"
+            showPlaceholder="${!allDataLoaded}"
             children="${html`<${Radarchart} />`}"
           />
         </div>

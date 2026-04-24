@@ -1,7 +1,11 @@
 import { html } from "./preact-htm.js";
 
-export function FilterContainer({ filters }) {
-  return html`<div class="filter-container">
+export function FilterContainer({ filters, showPlaceholder }) {
+  return html`<div
+    class="filter-container ${showPlaceholder
+      ? "filter-container-placeholder"
+      : ""}"
+  >
     ${filters.map((filter, index) => {
       const filterName = filter.label;
       const filterValue = filter.value;

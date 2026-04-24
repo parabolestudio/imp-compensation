@@ -1,6 +1,10 @@
 .custom-page {
-  background: #f7f9fb;
   font-family: "Inter", sans-serif;
+  background: #f7f9fb;
+
+  &.page-placeholder {
+    background: #fff;
+  }
 
   h1,
   h2,
@@ -216,6 +220,13 @@
     border: 1px solid rgba(198, 198, 205, 0.15);
     background: rgba(224, 227, 229, 0.5);
 
+    &.filter-container-placeholder {
+      background: #fff;
+      .filter {
+        opacity: 0;
+      }
+    }
+
     .filter {
       display: flex;
       flex-direction: column;
@@ -266,6 +277,13 @@
 
     &.box-width-50 {
       width: 50%;
+    }
+
+    &.box-placeholder {
+      background: #f2f4f6;
+      div {
+        opacity: 0;
+      }
     }
 
     .box-header {
@@ -407,5 +425,16 @@
     background: #40b3c2;
     display: inline-block;
     margin-right: 6px;
+  }
+
+  .loader-overlay {
+    position: absolute;
+    top: 150px;
+    left: 50%;
+    transform: translate(-50%, 0%);
+    z-index: 2;
+
+    width: 100px;
+    height: 100px;
   }
 }
