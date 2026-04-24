@@ -324,6 +324,22 @@
     gap: 3.5px;
   }
 
+  .pct-vis {
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+    margin-top: 2px;
+  }
+
+  .pct-box {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    /* border: 1px solid #d0d0d0; */
+    background: white;
+    flex-shrink: 0;
+  }
+
   .section-1 {
     display: inline-grid;
     row-gap: 32px;

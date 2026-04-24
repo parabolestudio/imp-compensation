@@ -223,10 +223,12 @@ export function Page() {
       (row) =>
         row.seniority === filterSelected.seniority &&
         row.team ===
-          filterSelected.team.replace("teams", "").replace("team", "").trim(),
+          filterSelected.team.replace("teams", "").replace("team", "").trim() &&
+        row.region === filterSelected.region &&
+        row.role === dataFiltered[0]?.role,
     );
     setDataRoleBoxFiltered(filtered);
-  }, [dataRoleBox, filterSelected, filterOptions]);
+  }, [dataRoleBox, filterSelected, filterOptions, dataFiltered]);
 
   useEffect(() => {
     // when asset class changes, filter general data for the new asset class
@@ -314,6 +316,9 @@ export function Page() {
     dataRoleBox &&
     dataRoleBox.length > 0;
 
+  const roleData =
+    dataRoleBoxFiltered.length > 0 ? dataRoleBoxFiltered[0] : null;
+
   return html`
     <div class="custom-page ${!allDataLoaded ? "page-placeholder" : ""}">
       <div class="section header">
@@ -377,21 +382,44 @@ export function Page() {
               style="display: flex; flex-direction: column; gap: 16px;"
             >
               <p class="text-body">
-                Responsible for sourcing transactions, leading due diligence and
-                negotiations, and driving value creation in portfolio companies
-                while managing junior team members. The role sits just below
-                Partner, acting as a bridge between the deal team and the
-                partnership, with increasing influence on investment decisions,
-                fundraising, and overall firm strategy.
+                ${roleData
+                  ? roleData.description
+                  : html`<div style="opacity: 0;">
+                      Responsible for sourcing transactions, leading due
+                      diligence and negotiations, and driving value creation in
+                      portfolio companies while managing junior team members.
+                      The role sits just below Partner, acting as a bridge
+                      between the deal team and the partnership, with increasing
+                      influence on investment decisions, fundraising, and
+                      overall firm strategy.
+                    </div>`}
               </p>
               <div class="data-highlights-container">
-                <${DataHighlight}
-                  headline="Typical Experience"
-                  value="12+ Years"
-                />
-                <${DataHighlight} headline="Direct Reports" value="0-3" />
-                <${DataHighlight} headline="Carry Eligible" value="Yes" />
-                <${DataHighlight} headline="Share of Women" value="25%" />
+                ${roleData &&
+                html`
+                  <${DataHighlight}
+                    headline="Typical Experience"
+                    value="${roleData?.typicalExperience + " Years" || ""}"
+                  />
+                  <${DataHighlight}
+                    headline="Direct Reports"
+                    value="${roleData?.directReports || ""}"
+                  />
+                  <${DataHighlight}
+                    headline="Carry Eligible"
+                    value="${roleData
+                      ? roleData.carryEligible === "Yes"
+                        ? "Yes"
+                        : "No"
+                      : ""}"
+                  />
+                  <${DataHighlight}
+                    headline="Share of Women"
+                    value="${roleData?.shareOfWomen + " %" || ""}"
+                    vis="percentage"
+                    visValue="${roleData ? roleData.shareOfWomen : null}"
+                  />
+                `}
               </div>
             </div>`}"
           />
@@ -401,7 +429,9 @@ export function Page() {
               className="bg-dark"
               showPlaceholder="${!allDataLoaded}"
               children="${html`<div>
-                <p class="text-big-numbers-large">XXX</p>
+                <p class="text-big-numbers-large">
+                  ${dataFiltered[0]?.numberOfCompanies || "-"}
+                </p>
                 <p class="text-tags-large">Companies in Sample</p>
               </div>`}"
             />
@@ -409,7 +439,9 @@ export function Page() {
               headlineIcon="data"
               showPlaceholder="${!allDataLoaded}"
               children="${html`<div>
-                <p class="text-big-numbers-large">XXX</p>
+                <p class="text-big-numbers-large">
+                  ${dataFiltered[0]?.numberOfRespondents || "-"}
+                </p>
                 <p class="text-tags-large">Data points in Sample</p>
               </div>`}"
             />
