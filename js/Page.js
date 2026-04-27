@@ -15,7 +15,7 @@ const ASSET_CLASSES = [
   },
   {
     label: "Private debt",
-    dataKey: "Private debt",
+    dataKey: "Credit",
   },
   {
     label: "Real assets",
@@ -24,13 +24,13 @@ const ASSET_CLASSES = [
 ];
 
 const FILTERS = [
+  { key: "team", label: "Team", dataField: "team", defaultValue: "HR" },
   {
-    key: "seniority",
-    label: "Seniority",
-    dataField: "seniority",
-    defaultValue: "Senior Associate",
+    key: "role",
+    label: "Role",
+    dataField: "role",
+    defaultValue: null, // default value will be set dynamically based on the selected team
   },
-  { key: "team", label: "Team", dataField: "team", defaultValue: "Compliance" },
   {
     key: "AUMband",
     label: "AUM Range",
@@ -145,23 +145,31 @@ export function Page() {
 
           // get filter options for the filters based on the data
           const newOptions = Object.fromEntries(
-            FILTERS.map((f) => [
-              f.key,
-              [...new Set(filteredByAssetClass.map((row) => row[f.dataField]))]
-                .map((value) => {
-                  return {
+            FILTERS.map((f) => {
+              const filteredData =
+                f.key === "role"
+                  ? filteredByAssetClass.filter(
+                      (row) => row.team === filterSelected.team,
+                    )
+                  : filteredByAssetClass;
+              return [
+                f.key,
+                [...new Set(filteredData.map((row) => row[f.dataField]))]
+                  .map((value) => ({
                     value,
                     label: f.formatValueLabel
                       ? f.formatValueLabel(value)
                       : value,
-                  };
-                })
-                .sort(
-                  f.sortOptions || ((a, b) => a.label.localeCompare(b.label)),
-                ),
-            ]),
+                  }))
+                  .sort(
+                    f.sortOptions || ((a, b) => a.label.localeCompare(b.label)),
+                  ),
+              ];
+            }),
           );
+          const initialRole = newOptions.role[0]?.value ?? filterSelected.role;
           setFilterOptions(newOptions);
+          setFilterSelected((prev) => ({ ...prev, role: initialRole }));
         })
         .catch((error) => {
           console.error("Error fetching sheet data (main data):", error);
@@ -221,7 +229,7 @@ export function Page() {
   useEffect(() => {
     const filtered = dataRoleBox.filter(
       (row) =>
-        row.seniority === filterSelected.seniority &&
+        // row.seniority === filterSelected.seniority &&
         row.team ===
           filterSelected.team.replace("teams", "").replace("team", "").trim() &&
         row.region === filterSelected.region &&
@@ -239,19 +247,28 @@ export function Page() {
 
     // get filter options for the filters based on the data
     const newOptions = Object.fromEntries(
-      FILTERS.map((f) => [
-        f.key,
-        [...new Set(filteredByAssetClass.map((row) => row[f.dataField]))]
-          .map((value) => {
-            return {
+      FILTERS.map((f) => {
+        const filteredData =
+          f.key === "role"
+            ? filteredByAssetClass.filter(
+                (row) => row.team === filterSelected.team,
+              )
+            : filteredByAssetClass;
+        return [
+          f.key,
+          [...new Set(filteredData.map((row) => row[f.dataField]))]
+            .map((value) => ({
               value,
               label: f.formatValueLabel ? f.formatValueLabel(value) : value,
-            };
-          })
-          .sort(f.sortOptions || ((a, b) => a.label.localeCompare(b.label))),
-      ]),
+            }))
+            .sort(f.sortOptions || ((a, b) => a.label.localeCompare(b.label))),
+        ];
+      }),
     );
+    const firstRoleOnAssetChange =
+      newOptions.role[0]?.value ?? filterSelected.role;
     setFilterOptions(newOptions);
+    setFilterSelected((prev) => ({ ...prev, role: firstRoleOnAssetChange }));
 
     const filtered = filteredByAssetClass.filter((row) =>
       FILTERS.every((f) => row[f.dataField] === filterSelected[f.key]),
@@ -269,6 +286,33 @@ export function Page() {
     "Filtered role box data:",
     dataRoleBoxFiltered,
   );
+
+  function handleFilterChange(key, value) {
+    if (key === "team") {
+      const roleFilter = FILTERS.find((f) => f.key === "role");
+      const roleOptions = [
+        ...new Set(
+          dataForAssetClass
+            .filter((row) => row.team === value)
+            .map((row) => row[roleFilter.dataField]),
+        ),
+      ]
+        .map((v) => ({
+          value: v,
+          label: roleFilter.formatValueLabel
+            ? roleFilter.formatValueLabel(v)
+            : v,
+        }))
+        .sort(
+          roleFilter.sortOptions || ((a, b) => a.label.localeCompare(b.label)),
+        );
+      const firstRole = roleOptions[0]?.value ?? filterSelected.role;
+      setFilterOptions((prev) => ({ ...prev, role: roleOptions }));
+      setFilterSelected((prev) => ({ ...prev, team: value, role: firstRole }));
+    } else {
+      setFilterSelected((prev) => ({ ...prev, [key]: value }));
+    }
+  }
 
   function handleExport(option) {
     if (dataForAssetClass.length === 0 || dataFiltered.length === 0) return;
@@ -361,8 +405,7 @@ export function Page() {
             label: f.label,
             value: filterSelected[f.key],
             options: filterOptions[f.key],
-            onChange: (value) =>
-              setFilterSelected((prev) => ({ ...prev, [f.key]: value })),
+            onChange: (value) => handleFilterChange(f.key, value),
           }))}
           showPlaceholder="${!allDataLoaded}"
         />
