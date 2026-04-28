@@ -381,6 +381,39 @@ export function Page({ assetClass }) {
 
   return html`
     <div class="custom-page ${!allDataLoaded ? "page-placeholder" : ""}">
+      <div class="subnav-asset-class">
+        ${ASSET_CLASSES.map((ac) => {
+          const isSelected = ac.dataKey === selectedAssetClass.dataKey;
+          return html`<button
+            class=${`subnav-button ${isSelected ? "selected" : ""}`}
+            onclick=${() => {
+              console.log("Clicked asset class button for", ac.dataKey);
+
+              // if the url is privatemarketsintelligence.com/..., then we want to change the query parameter "tab" to the selected asset class
+              // if the url is localhost:3000/..., then we want to switch to another index.html file for the selected asset class (this is for development purposes, in production we will use query parameters to switch between asset classes)
+              const currentUrl = new URL(window.location.href);
+              if (currentUrl.hostname === "privatemarketsintelligence.com") {
+                let newTabName = ac.dataKey;
+                if (newTabName === "Private equity") {
+                  newTabName = "Private Equity_Compensation";
+                } else if (newTabName === "Private debt") {
+                  newTabName = "Credit_Compensation";
+                } else if (newTabName === "Real assets") {
+                  newTabName = "Real Assets_Compensation";
+                }
+                currentUrl.searchParams.set("tab", newTabName);
+                window.location.href = currentUrl; // navigate to the new URL with updated query parameter
+              } else {
+                // for development, we will switch between different html files for each asset class
+                const newPage = `index-${ac.label.replace(" ", "-").toLowerCase()}.html`;
+                window.location.href = newPage;
+              }
+            }}
+          >
+            ${ac.label}
+          </button>`;
+        })}
+      </div>
       <div class="section header">
         <div class="header-top">
           <h1>${selectedAssetClass.label} compensation levels</h1>
