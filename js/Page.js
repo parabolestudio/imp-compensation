@@ -14,8 +14,8 @@ const ASSET_CLASSES = [
     dataKey: "Private equity",
   },
   {
-    label: "Private debt",
-    dataKey: "Credit",
+    label: "Credit",
+    dataKey: "Private debt",
   },
   {
     label: "Real assets",
@@ -65,10 +65,9 @@ const FILTERS = [
   },
 ];
 
-export function Page() {
-  const [selectedAssetClass, setSelectedAssetClass] = useState(
-    ASSET_CLASSES[0],
-  );
+export function Page({ assetClass }) {
+  const selectedAssetClass =
+    ASSET_CLASSES.find((ac) => ac.dataKey === assetClass) || ASSET_CLASSES[0];
   const [dataAcrossAssetClasses, setDataAcrossAssetClasses] = useState([]);
   const [dataForAssetClass, setDataForAssetClass] = useState([]);
   const [dataRoleBox, setDataRoleBox] = useState([]);
@@ -168,8 +167,17 @@ export function Page() {
             }),
           );
           const initialRole = newOptions.role[0]?.value ?? filterSelected.role;
+          const initialStrategy =
+            newOptions.strategy.find((o) => o.value === "PE aggregate")
+              ?.value ??
+            newOptions.strategy[0]?.value ??
+            filterSelected.strategy;
           setFilterOptions(newOptions);
-          setFilterSelected((prev) => ({ ...prev, role: initialRole }));
+          setFilterSelected((prev) => ({
+            ...prev,
+            role: initialRole,
+            strategy: initialStrategy,
+          }));
         })
         .catch((error) => {
           console.error("Error fetching sheet data (main data):", error);
@@ -267,8 +275,16 @@ export function Page() {
     );
     const firstRoleOnAssetChange =
       newOptions.role[0]?.value ?? filterSelected.role;
+    const firstStrategyOnAssetChange =
+      newOptions.strategy.find((o) => o.value === "PE aggregate")?.value ??
+      newOptions.strategy[0]?.value ??
+      filterSelected.strategy;
     setFilterOptions(newOptions);
-    setFilterSelected((prev) => ({ ...prev, role: firstRoleOnAssetChange }));
+    setFilterSelected((prev) => ({
+      ...prev,
+      role: firstRoleOnAssetChange,
+      strategy: firstStrategyOnAssetChange,
+    }));
 
     const filtered = filteredByAssetClass.filter((row) =>
       FILTERS.every((f) => row[f.dataField] === filterSelected[f.key]),

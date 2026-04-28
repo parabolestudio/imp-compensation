@@ -21,5 +21,16 @@ function renderPage(page) {
 }
 
 renderPage({
-  id: "custom-page-container-compensation-report",
+  id: "custom-page-container-compensation-report-private-equity",
+  assetClass: "Private equity",
+});
+
+renderPage({
+  id: "custom-page-container-compensation-report-credit",
+  assetClass: "Private debt",
+});
+
+renderPage({
+  id: "custom-page-container-compensation-report-real-assets",
+  assetClass: "Real assets",
 });

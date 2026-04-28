@@ -1,4 +1,4 @@
-import { html } from "./preact-htm.js";
+import { html, scaleLinear, scaleBand } from "./preact-htm.js";
 
 export function Scatterplot({ data }) {
   const normalizedData = Array.isArray(data)
@@ -53,15 +53,13 @@ export function Scatterplot({ data }) {
   const innerHeight = height - margin.top - margin.bottom;
 
   const compTypeOrder = ["base", "bonus", "totalComp"];
-  const maxValue = d3.max(chartData, (d) => d.value) || 0;
+  const maxValue = Math.max(...chartData.map((d) => d.value), 0);
 
-  const yScale = d3
-    .scaleLinear()
+  const yScale = scaleLinear()
     .domain([0, maxValue > 0 ? maxValue : 1])
     .range([innerHeight, 0])
     .nice();
-  const xScale = d3
-    .scaleBand()
+  const xScale = scaleBand()
     .domain(compTypeOrder)
     .range([0, innerWidth])
     .padding(0.1);
