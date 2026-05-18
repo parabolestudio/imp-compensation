@@ -72,6 +72,7 @@ export function Page({ assetClass }) {
   const [dataForAssetClass, setDataForAssetClass] = useState([]);
   const [dataRoleBox, setDataRoleBox] = useState([]);
   const [dataRoleBoxFiltered, setDataRoleBoxFiltered] = useState([]);
+  const [dataRadarChart, setDataRadarChart] = useState([]);
   const [lastDataUpdateInfo, setLastDataUpdateInfo] = useState(null);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
 
@@ -208,6 +209,27 @@ export function Page({ assetClass }) {
           console.error("Error fetching sheet data (role box data):", error);
         });
 
+      // fetch radar chart data
+      fetchGoogleSheetCSV("radar-chart-data")
+        .then((rawRadarData) => {
+          const formattedRadarData = rawRadarData.map((row) => {
+            return {
+              team: row["Team"],
+              role: row["Role"],
+              assetClass: row["Asset class"],
+              valueCarry: +row["Carry"],
+              valueEquity: +row["Real Equity"],
+              valueBonus: +row["Deferred bonus"],
+            };
+          });
+
+          console.log("Formatted radar chart data:", formattedRadarData);
+          setDataRadarChart(formattedRadarData);
+        })
+        .catch((error) => {
+          console.error("Error fetching sheet data (radar chart data):", error);
+        });
+
       // fetch last data update info sheet
       fetchGoogleSheetCSV("last-data-update")
         .then((data) => {
@@ -301,6 +323,8 @@ export function Page({ assetClass }) {
     dataRoleBox,
     "Filtered role box data:",
     dataRoleBoxFiltered,
+    "Radar chart data:",
+    dataRadarChart,
   );
 
   function handleFilterChange(key, value) {
@@ -567,7 +591,13 @@ export function Page({ assetClass }) {
             headline="Prevalence of incentives"
             className="box-width-50"
             showPlaceholder="${!allDataLoaded}"
-            children="${html`<${Radarchart} />`}"
+            children="${html`<${Radarchart}
+              data=${dataRadarChart.filter(
+                (d) =>
+                  d.team === filterSelected.team &&
+                  d.role === filterSelected.role,
+              )}
+            />`}"
           />
         </div>
       </div>

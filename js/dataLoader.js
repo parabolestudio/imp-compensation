@@ -52,6 +52,7 @@ const SHEET_TAB_IDS = {
   "main-data": "1439029939",
   "main-data-new": "38414697",
   "role-box-data": "32159509",
+  "radar-chart-data": "1271887760",
   "last-data-update": "763135013",
 };
 
