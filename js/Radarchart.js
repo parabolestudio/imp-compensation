@@ -166,13 +166,14 @@ export function Radarchart({ data }) {
           stroke-width="2"
         />
 
-        <!-- Role label next to equity data point -->
+        <!-- Role label vertically centered between carry and equity data points -->
         ${html`
           <text
-            x="${dataPoints[1].x + 20}"
-            y="${dataPoints[1].y + 5}"
+            x="${dataPoints[1].x + 5}"
+            y="${(dataPoints[0].y + dataPoints[1].y) / 2}"
             class="text-annotations"
             fill="#C741AF"
+            dominant-baseline="middle"
           >
             ${chartData.role}
           </text>

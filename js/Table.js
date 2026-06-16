@@ -11,8 +11,8 @@ const PERCENTILES = [
 
 const ROWS = [
   { label: "Salary", compType: "base" },
-  { label: "Bonus", compType: "bonus" },
-  { label: "Bonus as % of base", compType: "bonusPercentage" },
+  { label: "Bonus", compType: "bonusValue" },
+  { label: "Bonus as % of base", compType: "bonusPercentage", suffix: "%" },
   { label: "Total Compensation", compType: "totalComp" },
 ];
 
@@ -26,46 +26,16 @@ function formatValue(value) {
   });
 }
 
-function getValue(dataByCompType, compType, percentile) {
-  const entries = dataByCompType[compType];
-  if (!entries) return "XXXX";
-  return formatValue(entries.find((d) => d.percentile === percentile)?.value);
-}
+const PERCENTILE_KEYS = [10, 25, 50, 75, 90, "avg"];
 
-function getPercentile(dataByCompType, compType, percentile) {
-  const entries = dataByCompType[compType];
-  if (!entries) return null;
-  return entries.find((d) => d.percentile === percentile);
+function getValue(comp, compType, percentileKey) {
+  const val = comp?.[compType]?.[percentileKey];
+  if (val == null || val === 0) return "-";
+  return formatValue(val);
 }
 
 export function Table({ data }) {
-  const dataByCompType = {
-    base: [],
-    bonus: [],
-    bonusPercentage: [],
-    totalComp: [],
-  };
-
-  if (Array.isArray(data)) {
-    data.forEach((entry) => {
-      dataByCompType.base.push({
-        percentile: entry.percentile,
-        value: entry.compValueBase,
-      });
-      dataByCompType.bonus.push({
-        percentile: entry.percentile,
-        value: entry.compValueBonus,
-      });
-      dataByCompType.totalComp.push({
-        percentile: entry.percentile,
-        value: entry.compValueTotal,
-      });
-      dataByCompType.bonusPercentage.push({
-        percentile: entry.percentile,
-        value: entry.compValueBonusPercentage,
-      });
-    });
-  }
+  const comp = data?.[0]?.comp ?? null;
 
   return html`
     <table class="table">
@@ -82,24 +52,19 @@ export function Table({ data }) {
       </thead>
       <tbody>
         ${ROWS.map(
-          ({ label, compType }) => html`
+          ({ label, compType, suffix = "" }) => html`
             <tr>
               <td>${label}</td>
-              ${PERCENTILES.map((p) => {
-                let classNames = "";
-                if (
-                  (p === "50th percentile" || p === "Average") &&
-                  compType !== "Total comp"
-                ) {
-                  classNames += "highlight";
-                } else if (
-                  (p === "50th percentile" || p === "Average") &&
-                  compType === "Total comp"
-                ) {
-                  classNames += "highlightExtra";
-                }
+              ${PERCENTILE_KEYS.map((key, i) => {
+                const isHighlight = key === 50 || key === "avg";
+                const classNames =
+                  isHighlight && compType === "totalComp"
+                    ? "highlightExtra"
+                    : isHighlight
+                      ? "highlight"
+                      : "";
                 return html`<td class="${classNames}">
-                  ${compType ? getValue(dataByCompType, compType, p) : "xxxx"}
+                  ${getValue(comp, compType, key)}${suffix}
                 </td>`;
               })}
             </tr>

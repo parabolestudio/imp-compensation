@@ -1,5 +1,5 @@
 import { html, useEffect, useState } from "./preact-htm.js";
-import { fetchGoogleSheetCSV } from "./dataLoader.js";
+import { fetchGoogleSheetCSV, prefetchOtherAssetClassTabs } from "./dataLoader.js";
 import { FilterContainer } from "./FilterContainer.js";
 import { Box } from "./Box.js";
 import { DataHighlight } from "./DataHighlight.js";
@@ -12,14 +12,17 @@ const ASSET_CLASSES = [
   {
     label: "Private equity",
     dataKey: "Private equity",
+    dataTab: "main-data-private-equity",
   },
   {
     label: "Credit",
     dataKey: "Private debt",
+    dataTab: "main-data-credit",
   },
   {
     label: "Real assets",
     dataKey: "Real assets",
+    dataTab: "main-data-real-assets",
   },
 ];
 
@@ -35,22 +38,14 @@ const FILTERS = [
     key: "AUMband",
     label: "AUM Range",
     dataField: "AUMband",
-    defaultValue: "2-10",
-    formatValueLabel: (value) => {
-      if (value === "0-2") return "< $2B";
-      if (value === "2-10") return "$2B - $10B";
-      if (value === "10-50") return "$10B - $50B";
-      if (value === "50-100") return "$50B - $100B";
-      if (value === "100+") return "> $100B";
-      return value;
-    },
+    defaultValue: "Boutique (2-10bn)",
     sortOptions: (a, b) => {
       const order = [
-        "< $2B",
-        "$2B - $10B",
-        "$10B - $50B",
-        "$50B - $100B",
-        "> $100B",
+        "Startup (0-2bn)",
+        "Boutique (2-10bn)",
+        "Mid-market (10-50bn)",
+        "Upper Mid (50-100bn)",
+        "Mega (100+bn)",
       ];
       return order.indexOf(a.label) - order.indexOf(b.label);
     },
@@ -68,7 +63,6 @@ const FILTERS = [
 export function Page({ assetClass }) {
   const selectedAssetClass =
     ASSET_CLASSES.find((ac) => ac.dataKey === assetClass) || ASSET_CLASSES[0];
-  const [dataAcrossAssetClasses, setDataAcrossAssetClasses] = useState([]);
   const [dataForAssetClass, setDataForAssetClass] = useState([]);
   const [dataRoleBox, setDataRoleBox] = useState([]);
   const [dataRoleBoxFiltered, setDataRoleBoxFiltered] = useState([]);
@@ -97,154 +91,164 @@ export function Page({ assetClass }) {
 
   const [dataFiltered, setDataFiltered] = useState([]);
 
-  const loadData = true;
-
+  // Re-fetch main data whenever the asset class changes
   useEffect(() => {
-    if (loadData) {
-      // fetch main data sheet and format it for use in the app
-      fetchGoogleSheetCSV("main-data-new")
-        .then((rawData) => {
-          const formattedData = rawData.map((row) => {
-            let currency = row["Currency"];
-            let currencySymbol = null;
-            if (currency === "GBP") {
-              currencySymbol = "£";
-            } else if (currency === "EUR") {
-              currencySymbol = "€";
-            } else if (currency === "USD") {
-              currencySymbol = "$";
-            }
-
-            return {
-              assetClass: row["Asset class"],
-              seniority: row["Seniority"],
-              team: row["Function"],
-              region: row["Region"],
-              role: row["Role"],
-              strategy: row["Strategy"],
-              AUMband: row["AUM band ($bn)"],
-              numberOfCompanies: +row["No. of firms"],
-              numberOfRespondents: +row["No. of respondents"],
-              percentile: row["Percentile"],
-              currency,
-              currencySymbol,
-              compValueBase: +row["Base"].replaceAll(",", ""),
-              compValueBonus: +row["Discretionary"].replaceAll(",", ""),
-              compValueTotal: +row["Total comp"].replaceAll(",", ""),
-              compValueBonusPercentage: row["Disc % of base"],
-            };
-          });
-
-          console.log("Formatted data:", formattedData);
-          setDataAcrossAssetClasses(formattedData);
-
-          const filteredByAssetClass = formattedData.filter(
-            (row) => row.assetClass === selectedAssetClass.dataKey,
-          );
-          setDataForAssetClass(filteredByAssetClass);
-
-          // get filter options for the filters based on the data
-          const newOptions = Object.fromEntries(
-            FILTERS.map((f) => {
-              const filteredData =
-                f.key === "role"
-                  ? filteredByAssetClass.filter(
-                      (row) => row.team === filterSelected.team,
-                    )
-                  : filteredByAssetClass;
-              return [
-                f.key,
-                [...new Set(filteredData.map((row) => row[f.dataField]))]
-                  .map((value) => ({
-                    value,
-                    label: f.formatValueLabel
-                      ? f.formatValueLabel(value)
-                      : value,
-                  }))
-                  .sort(
-                    f.sortOptions || ((a, b) => a.label.localeCompare(b.label)),
-                  ),
-              ];
-            }),
-          );
-          const initialRole = newOptions.role[0]?.value ?? filterSelected.role;
-          const initialStrategy =
-            newOptions.strategy.find((o) => o.value === "PE aggregate")
-              ?.value ??
-            newOptions.strategy[0]?.value ??
-            filterSelected.strategy;
-          setFilterOptions(newOptions);
-          setFilterSelected((prev) => ({
-            ...prev,
-            role: initialRole,
-            strategy: initialStrategy,
-          }));
-        })
-        .catch((error) => {
-          console.error("Error fetching sheet data (main data):", error);
-        });
-
-      // fetch role box data
-      fetchGoogleSheetCSV("role-box-data")
-        .then((rawRoleData) => {
-          const formattedRoleData = rawRoleData.map((row) => {
-            return {
-              team: row["Team"],
-              role: row["Role"],
-              seniority: row["Seniority"],
-              region: row["Region"],
-              assetClass: row["Asset class"],
-              description: row["Description"],
-              typicalExperience: row["Typical experience"],
-              directReports: row["Direct reports"],
-              carryEligible: row["Carry eligible"],
-              shareOfWomen: +row["Share of women"],
-            };
-          });
-
-          console.log("Formatted role data:", formattedRoleData);
-          setDataRoleBox(formattedRoleData);
-        })
-        .catch((error) => {
-          console.error("Error fetching sheet data (role box data):", error);
-        });
-
-      // fetch radar chart data
-      fetchGoogleSheetCSV("radar-chart-data")
-        .then((rawRadarData) => {
-          const formattedRadarData = rawRadarData.map((row) => {
-            return {
-              team: row["Team"],
-              role: row["Role"],
-              assetClass: row["Asset class"],
-              valueCarry: +row["Carry"],
-              valueEquity: +row["Real Equity"],
-              valueBonus: +row["Deferred bonus"],
-            };
-          });
-
-          console.log("Formatted radar chart data:", formattedRadarData);
-          setDataRadarChart(formattedRadarData);
-        })
-        .catch((error) => {
-          console.error("Error fetching sheet data (radar chart data):", error);
-        });
-
-      // fetch last data update info sheet
-      fetchGoogleSheetCSV("last-data-update")
-        .then((data) => {
-          if (data.length > 0 && data[0]["value"]) {
-            setLastDataUpdateInfo(data[0]["value"]);
-          } else {
-            console.error(
-              "Last data update info sheet is empty or missing 'value' column",
-            );
+    setDataForAssetClass([]);
+    fetchGoogleSheetCSV(selectedAssetClass.dataTab)
+      .then((rawData) => {
+        const formattedData = rawData.map((row) => {
+          let currency = row["Currency"];
+          let currencySymbol = null;
+          if (currency === "GBP") {
+            currencySymbol = "£";
+          } else if (currency === "EUR") {
+            currencySymbol = "€";
+          } else if (currency === "USD") {
+            currencySymbol = "$";
           }
-        })
-        .catch((error) => {
-          console.error("Error fetching sheet data (last data update):", error);
+
+          return {
+            assetClass: row["Asset Class"],
+            seniority: row["Seniority"],
+            team: row["Team"],
+            region: row["Region"],
+            role: row["Role"],
+            strategy: row["Strategy"],
+            AUMband: row["AUM"],
+            currency,
+            currencySymbol,
+
+            numberOfCompanies: +row["No of firms"],
+            numberOfRespondents: +row["No of respondants"],
+
+            comp: {
+              base: {
+                10: +row["Base salary 10th"],
+                25: +row["Base salary 25th"],
+                50: +row["Base salary 50th"],
+                75: +row["Base salary 75th"],
+                90: +row["Base salary 90th"],
+                avg: +row["Base salary average"],
+              },
+              bonusValue: {
+                10: +row["bonus value (calculated) 10th"],
+                25: +row["bonus value (calculated) 25th"],
+                50: +row["bonus value (calculated) 50th"],
+                75: +row["bonus value (calculated) 75th"],
+                90: +row["bonus value (calculated) 90th"],
+                avg: +row["bonus value (calculated) average"],
+              },
+              bonusPercentage: {
+                10: +row["Bonus (%) 10th"].replace("%", ""),
+                25: +row["Bonus (%) 25th"].replace("%", ""),
+                50: +row["Bonus (%) 50th"].replace("%", ""),
+                75: +row["Bonus (%) 75th"].replace("%", ""),
+                90: +row["Bonus (%) 90th"].replace("%", ""),
+                avg: +row["Bonus (%) average"].replace("%", ""),
+              },
+              totalComp: {
+                10: +row["Total cash comp (calculated) 10th"],
+                25: +row["Total cash comp (calculated) 25th"],
+                50: +row["Total cash comp (calculated) 50th"],
+                75: +row["Total cash comp (calculated) 75th"],
+                90: +row["Total cash comp (calculated) 90th"],
+                avg: +row["Total cash comp (calculated) average"],
+              },
+            },
+          };
         });
-    }
+
+        setDataForAssetClass(formattedData);
+
+        const teamOptions = [...new Set(formattedData.map((row) => row.team))];
+        const initialTeam =
+          teamOptions.find((t) => t === filterSelected.team) ??
+          teamOptions[0] ??
+          filterSelected.team;
+        const newOptions = Object.fromEntries(
+          FILTERS.map((f) => {
+            const filteredData =
+              f.key === "role"
+                ? formattedData.filter((row) => row.team === initialTeam)
+                : formattedData;
+            return [
+              f.key,
+              [...new Set(filteredData.map((row) => row[f.dataField]))]
+                .map((value) => ({
+                  value,
+                  label: f.formatValueLabel ? f.formatValueLabel(value) : value,
+                }))
+                .sort(
+                  f.sortOptions || ((a, b) => a.label.localeCompare(b.label)),
+                ),
+            ];
+          }),
+        );
+        const initialRole = newOptions.role[0]?.value ?? filterSelected.role;
+        const initialStrategy =
+          newOptions.strategy.find((o) => o.value === "PE aggregate")?.value ??
+          newOptions.strategy[0]?.value ??
+          filterSelected.strategy;
+        setFilterOptions(newOptions);
+        setFilterSelected((prev) => ({
+          ...prev,
+          team: initialTeam,
+          role: initialRole,
+          strategy: initialStrategy,
+        }));
+
+        prefetchOtherAssetClassTabs(selectedAssetClass.dataTab);
+      })
+      .catch((error) => {
+        console.error("Error fetching sheet data (main data):", error);
+      });
+  }, [selectedAssetClass]);
+
+  // Fetch static sheets once on mount
+  useEffect(() => {
+    Promise.all([
+      fetchGoogleSheetCSV("role-box-data"),
+      fetchGoogleSheetCSV("radar-chart-data"),
+      fetchGoogleSheetCSV("last-data-update"),
+    ])
+      .then(([rawRoleData, rawRadarData, rawUpdateData]) => {
+        setDataRoleBox(
+          rawRoleData.map((row) => ({
+            team: row["Team"],
+            role: row["Role"],
+            seniority: row["Seniority"],
+            region: row["Region"],
+            assetClass: row["Asset class"],
+            description: row["Description"],
+            typicalExperience: row["Typical experience"],
+            directReports: row["Direct reports"],
+            carryEligible: row["Carry eligible"],
+            shareOfWomen: +row["Share of women"],
+          })),
+        );
+
+        setDataRadarChart(
+          rawRadarData.map((row) => ({
+            team: row["Team"],
+            role: row["Role"],
+            assetClass: row["Asset class"],
+            valueCarry: +row["Carry"],
+            valueEquity: +row["Real Equity"],
+            valueBonus: +row["Deferred bonus"],
+          })),
+        );
+
+        if (rawUpdateData.length > 0 && rawUpdateData[0]["value"]) {
+          setLastDataUpdateInfo(rawUpdateData[0]["value"]);
+        } else {
+          console.error(
+            "Last data update info sheet is empty or missing 'value' column",
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching static sheet data:", error);
+      });
   }, []);
 
   // Apply filters to the data for the selected asset class
@@ -259,60 +263,12 @@ export function Page({ assetClass }) {
   useEffect(() => {
     const filtered = dataRoleBox.filter(
       (row) =>
-        // row.seniority === filterSelected.seniority &&
-        row.team ===
-          filterSelected.team.replace("teams", "").replace("team", "").trim() &&
+        row.team.toLowerCase() === filterSelected.team.toLowerCase() &&
         row.region === filterSelected.region &&
         row.role === dataFiltered[0]?.role,
     );
     setDataRoleBoxFiltered(filtered);
   }, [dataRoleBox, filterSelected, filterOptions, dataFiltered]);
-
-  useEffect(() => {
-    // when asset class changes, filter general data for the new asset class
-    const filteredByAssetClass = dataAcrossAssetClasses.filter(
-      (row) => row.assetClass === selectedAssetClass.dataKey,
-    );
-    setDataForAssetClass(filteredByAssetClass);
-
-    // get filter options for the filters based on the data
-    const newOptions = Object.fromEntries(
-      FILTERS.map((f) => {
-        const filteredData =
-          f.key === "role"
-            ? filteredByAssetClass.filter(
-                (row) => row.team === filterSelected.team,
-              )
-            : filteredByAssetClass;
-        return [
-          f.key,
-          [...new Set(filteredData.map((row) => row[f.dataField]))]
-            .map((value) => ({
-              value,
-              label: f.formatValueLabel ? f.formatValueLabel(value) : value,
-            }))
-            .sort(f.sortOptions || ((a, b) => a.label.localeCompare(b.label))),
-        ];
-      }),
-    );
-    const firstRoleOnAssetChange =
-      newOptions.role[0]?.value ?? filterSelected.role;
-    const firstStrategyOnAssetChange =
-      newOptions.strategy.find((o) => o.value === "PE aggregate")?.value ??
-      newOptions.strategy[0]?.value ??
-      filterSelected.strategy;
-    setFilterOptions(newOptions);
-    setFilterSelected((prev) => ({
-      ...prev,
-      role: firstRoleOnAssetChange,
-      strategy: firstStrategyOnAssetChange,
-    }));
-
-    const filtered = filteredByAssetClass.filter((row) =>
-      FILTERS.every((f) => row[f.dataField] === filterSelected[f.key]),
-    );
-    setDataFiltered(filtered);
-  }, [selectedAssetClass, dataAcrossAssetClasses]);
 
   console.log(
     "Page component data:",

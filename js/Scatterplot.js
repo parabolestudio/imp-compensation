@@ -1,41 +1,23 @@
 import { html, scaleLinear, scaleBand } from "./preact-htm.js";
 
 export function Scatterplot({ data }) {
-  const normalizedData = Array.isArray(data)
-    ? data.flatMap((entry) => {
-        // Support the old shape as a fallback.
-        if (
-          entry &&
-          entry.compensationType != null &&
-          entry.compensationValue != null
-        ) {
-          return [
-            {
-              compType: entry.compensationType,
-              percentile: entry.percentile,
-              value: Number(entry.compensationValue),
-            },
-          ];
-        }
+  const PERCENTILE_ENTRIES = [
+    { key: 10, label: "10th percentile" },
+    { key: 25, label: "25th percentile" },
+    { key: 50, label: "50th percentile" },
+    { key: 75, label: "75th percentile" },
+    { key: 90, label: "90th percentile" },
+  ];
 
-        return [
-          {
-            compType: "base",
-            percentile: entry?.percentile,
-            value: Number(entry?.compValueBase),
-          },
-          {
-            compType: "bonus",
-            percentile: entry?.percentile,
-            value: Number(entry?.compValueBonus),
-          },
-          {
-            compType: "totalComp",
-            percentile: entry?.percentile,
-            value: Number(entry?.compValueTotal),
-          },
-        ];
-      })
+  const comp = data?.[0]?.comp ?? null;
+  const normalizedData = comp
+    ? ["base", "bonusValue", "totalComp"].flatMap((compType) =>
+        PERCENTILE_ENTRIES.map(({ key, label }) => ({
+          compType,
+          percentile: label,
+          value: Number(comp[compType]?.[key] ?? 0),
+        })),
+      )
     : [];
 
   const chartData = normalizedData.filter(
@@ -52,7 +34,7 @@ export function Scatterplot({ data }) {
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
 
-  const compTypeOrder = ["base", "bonus", "totalComp"];
+  const compTypeOrder = ["base", "bonusValue", "totalComp"];
   const maxValue = Math.max(...chartData.map((d) => d.value), 0);
 
   const yScale = scaleLinear()
@@ -144,7 +126,7 @@ export function Scatterplot({ data }) {
             const formatTick = (tick) => {
               if (tick === "Base" || tick === "base") {
                 return "Salary";
-              } else if (tick === "Bonus" || tick === "bonus") {
+              } else if (tick === "Bonus" || tick === "bonus" || tick === "bonusValue") {
                 return "Bonus";
               } else if (tick === "Total comp" || tick === "totalComp") {
                 return "Total Compensation";
@@ -193,7 +175,7 @@ export function Scatterplot({ data }) {
                   : "transparent"}"
                 stroke-width="2"
               />
-              ${(d.compType === "Base" || d.compType === "base") &&
+              ${d.compType === "base" &&
               html`<text
                 x="${x + 10}"
                 y="${y + circleRadius / 2 - 1}"
