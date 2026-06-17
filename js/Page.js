@@ -457,21 +457,12 @@ export function Page({ assetClass }) {
             className="section-1-left"
             showPlaceholder="${!allDataLoaded}"
             noData=${allDataLoaded && !roleData}
+            hideHeader=${allDataLoaded && !roleData}
             children="${html`<div
               style="display: flex; flex-direction: column; gap: 16px;"
             >
               <p class="text-body">
-                ${roleData
-                  ? roleData.description
-                  : html`<div style="opacity: 0;">
-                      Responsible for sourcing transactions, leading due
-                      diligence and negotiations, and driving value creation in
-                      portfolio companies while managing junior team members.
-                      The role sits just below Partner, acting as a bridge
-                      between the deal team and the partnership, with increasing
-                      influence on investment decisions, fundraising, and
-                      overall firm strategy.
-                    </div>`}
+                ${roleData?.description || ""}
               </p>
               <div class="data-highlights-container">
                 ${roleData &&

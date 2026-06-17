@@ -325,6 +325,10 @@
       align-items: center;
       justify-content: center;
       flex: 1;
+
+      svg {
+        margin-bottom: 0.5rem;
+      }
     }
     &.no-padding {
       .box-content {

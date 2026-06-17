@@ -9,6 +9,7 @@ export function Box({
   children,
   showPlaceholder,
   noData,
+  hideHeader,
 }) {
   let icon = null;
   if (headlineIcon === "head") {
@@ -24,7 +25,7 @@ export function Box({
   return html`<div
     className=${`box ${className || ""} ${showPlaceholder ? "box-placeholder" : ""}`}
   >
-    <div class="box-header">
+    ${!hideHeader && html`<div class="box-header">
       <h2>
         ${icon ? html`<div class="box-header-icon">${icon}</div>` : ""}
         <span>${headline}</span>
@@ -33,7 +34,7 @@ export function Box({
       ${headlineRight
         ? html`<div class="box-header-right">${headlineRight}</div>`
         : ""}
-    </div>
+    </div>`}
     <div class="box-content">
       ${noData
         ? html`<div class="no-data-note">
