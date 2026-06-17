@@ -359,6 +359,12 @@ export function Page({ assetClass }) {
   const roleData =
     dataRoleBoxFiltered.length > 0 ? dataRoleBoxFiltered[0] : null;
 
+  const radarDataFiltered = dataRadarChart.filter(
+    (d) =>
+      d.team === filterSelected.team &&
+      d.role === filterSelected.role,
+  );
+
   return html`
     <div class="custom-page ${!allDataLoaded ? "page-placeholder" : ""}">
       <div class="subnav-asset-class">
@@ -450,6 +456,7 @@ export function Page({ assetClass }) {
             headlineIcon="head"
             className="section-1-left"
             showPlaceholder="${!allDataLoaded}"
+            noData=${allDataLoaded && !roleData}
             children="${html`<div
               style="display: flex; flex-direction: column; gap: 16px;"
             >
@@ -532,6 +539,7 @@ export function Page({ assetClass }) {
               : null}"
             className="no-padding"
             showPlaceholder="${!allDataLoaded}"
+            noData=${allDataLoaded && dataFiltered.length === 0}
             children="${html`<${Table} data=${dataFiltered} />`}"
           />
         </div>
@@ -541,18 +549,16 @@ export function Page({ assetClass }) {
             headline="Compensation distribution"
             className="box-width-50"
             showPlaceholder="${!allDataLoaded}"
+            noData=${allDataLoaded && dataFiltered.length === 0}
             children="${html`<${Scatterplot} data=${dataFiltered} />`}"
           />
           <${Box}
             headline="Prevalence of incentives"
             className="box-width-50"
             showPlaceholder="${!allDataLoaded}"
+            noData=${allDataLoaded && radarDataFiltered.length === 0}
             children="${html`<${Radarchart}
-              data=${dataRadarChart.filter(
-                (d) =>
-                  d.team === filterSelected.team &&
-                  d.role === filterSelected.role,
-              )}
+              data=${radarDataFiltered}
             />`}"
           />
         </div>
