@@ -5,12 +5,14 @@ export function Radarchart({ data }) {
   const visContainer = document.querySelector(`#radarchart-container`);
   let width =
     visContainer && visContainer.offsetWidth ? visContainer.offsetWidth : 600;
+  console.log("Calculated width:", width);
 
   const height = width;
 
+  const margin = 50;
+  const maxRadius = (width - 2 * margin) / 2;
   const centerX = width / 2;
   const centerY = height / 2;
-  const maxRadius = 250;
 
   console.log("Rendering Radarchart with data:", data);
 

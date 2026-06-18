@@ -30,7 +30,7 @@ export function Scatterplot({ data }) {
     visContainer && visContainer.offsetWidth ? visContainer.offsetWidth : 600;
 
   const height = width * 0.75 || 300;
-  const margin = { top: 20, right: 0, bottom: 28, left: 36 };
+  const margin = { top: 20, right: 0, bottom: 28, left: 50 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
 
@@ -126,7 +126,11 @@ export function Scatterplot({ data }) {
             const formatTick = (tick) => {
               if (tick === "Base" || tick === "base") {
                 return "Salary";
-              } else if (tick === "Bonus" || tick === "bonus" || tick === "bonusValue") {
+              } else if (
+                tick === "Bonus" ||
+                tick === "bonus" ||
+                tick === "bonusValue"
+              ) {
                 return "Bonus";
               } else if (tick === "Total comp" || tick === "totalComp") {
                 return "Total Compensation";
@@ -175,7 +179,7 @@ export function Scatterplot({ data }) {
                   : "transparent"}"
                 stroke-width="2"
               />
-              ${d.compType === "base" &&
+              ${d.compType === "totalComp" &&
               html`<text
                 x="${x + 10}"
                 y="${y + circleRadius / 2 - 1}"
