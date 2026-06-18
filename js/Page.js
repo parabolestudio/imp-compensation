@@ -1,5 +1,8 @@
 import { html, useEffect, useState } from "./preact-htm.js";
-import { fetchGoogleSheetCSV, prefetchOtherAssetClassTabs } from "./dataLoader.js";
+import {
+  fetchGoogleSheetCSV,
+  prefetchOtherAssetClassTabs,
+} from "./dataLoader.js";
 import { FilterContainer } from "./FilterContainer.js";
 import { Box } from "./Box.js";
 import { DataHighlight } from "./DataHighlight.js";
@@ -50,7 +53,19 @@ const FILTERS = [
       return order.indexOf(a.label) - order.indexOf(b.label);
     },
   },
-  { key: "region", label: "Region", dataField: "region", defaultValue: "UK" },
+  {
+    key: "region",
+    label: "Region",
+    dataField: "region",
+    defaultValue: "UK",
+    formatValueLabel: (value) =>
+      ({
+        EUR: "Europe",
+        APAC: "Asia-Pacific",
+        UK: "United Kingdom",
+        US: "USA",
+      })[value],
+  },
   {
     key: "strategy",
     label: "Strategy",
@@ -320,9 +335,7 @@ export function Page({ assetClass }) {
       // filter data for all filters except role, so we get all roles for the selected team
       dataForExport = dataForAssetClass.filter((row) =>
         FILTERS.every((f) =>
-          f.key === "role"
-            ? true
-            : row[f.dataField] === filterSelected[f.key],
+          f.key === "role" ? true : row[f.dataField] === filterSelected[f.key],
         ),
       );
     }
@@ -377,9 +390,7 @@ export function Page({ assetClass }) {
     dataRoleBoxFiltered.length > 0 ? dataRoleBoxFiltered[0] : null;
 
   const radarDataFiltered = dataRadarChart.filter(
-    (d) =>
-      d.team === filterSelected.team &&
-      d.role === filterSelected.role,
+    (d) => d.team === filterSelected.team && d.role === filterSelected.role,
   );
 
   return html`
@@ -478,9 +489,7 @@ export function Page({ assetClass }) {
             children="${html`<div
               style="display: flex; flex-direction: column; gap: 16px;"
             >
-              <p class="text-body">
-                ${roleData?.description || ""}
-              </p>
+              <p class="text-body">${roleData?.description || ""}</p>
               <div class="data-highlights-container">
                 ${roleData &&
                 html`
@@ -565,9 +574,7 @@ export function Page({ assetClass }) {
             className="box-width-50"
             showPlaceholder="${!allDataLoaded}"
             noData=${allDataLoaded && radarDataFiltered.length === 0}
-            children="${html`<${Radarchart}
-              data=${radarDataFiltered}
-            />`}"
+            children="${html`<${Radarchart} data=${radarDataFiltered} />`}"
           />
         </div>
       </div>
