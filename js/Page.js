@@ -487,7 +487,7 @@ export function Page({ assetClass }) {
             noData=${allDataLoaded && !roleData}
             hideHeader=${allDataLoaded && !roleData}
             children="${html`<div
-              style="display: flex; flex-direction: column; gap: 16px;"
+              style="display: flex; flex-direction: column; gap: 16px; justify-content: space-between; height: 100%;"
             >
               <p class="text-body">${roleData?.description || ""}</p>
               <div class="data-highlights-container">
