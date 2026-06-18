@@ -43,7 +43,7 @@
   .text-tags-large {
     color: #a1aeb3;
     font-family: "Archivo Narrow";
-    font-size: 12px;
+    font-size: 14px;
     font-style: normal;
     font-weight: 700;
     line-height: 16px; /* 133.333% */
@@ -53,7 +53,7 @@
   .text-tags-small {
     color: #738287;
     font-family: "Archivo Narrow";
-    font-size: 10px;
+    font-size: 12px;
     font-style: normal;
     font-weight: 700;
     line-height: 15px; /* 150% */
