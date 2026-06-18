@@ -317,18 +317,35 @@ export function Page({ assetClass }) {
     if (option === "role") {
       dataForExport = dataFiltered;
     } else if (option === "team") {
-      // filter data for all filters except seniority, so we get all seniority levels for the selected team
+      // filter data for all filters except role, so we get all roles for the selected team
       dataForExport = dataForAssetClass.filter((row) =>
         FILTERS.every((f) =>
-          f.key === "seniority"
+          f.key === "role"
             ? true
             : row[f.dataField] === filterSelected[f.key],
         ),
       );
     }
 
-    const headers = Object.keys(dataForExport[0]);
-    const rows = dataForExport.map((row) =>
+    const flattenRow = (row) => {
+      const flat = {};
+      for (const [key, val] of Object.entries(row)) {
+        if (key === "currencySymbol") continue;
+        if (key === "comp" && typeof val === "object") {
+          for (const [category, percentiles] of Object.entries(val)) {
+            for (const [p, v] of Object.entries(percentiles)) {
+              flat[`${category}_${p}`] = v;
+            }
+          }
+        } else {
+          flat[key] = val;
+        }
+      }
+      return flat;
+    };
+    const flatData = dataForExport.map(flattenRow);
+    const headers = Object.keys(flatData[0]);
+    const rows = flatData.map((row) =>
       headers
         .map((h) => {
           const val = row[h] ?? "";
