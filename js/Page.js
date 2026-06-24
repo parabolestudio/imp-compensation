@@ -487,7 +487,7 @@ export function Page({ assetClass }) {
             noData=${allDataLoaded && !roleData}
             hideHeader=${allDataLoaded && !roleData}
             children="${html`<div
-              style="display: flex; flex-direction: column; gap: 16px; justify-content: space-between; height: 100%;"
+              style="display: flex; flex-direction: column; gap: 34px; justify-content: space-between; height: 100%;"
             >
               <p class="text-body">${roleData?.description || ""}</p>
               <div class="data-highlights-container">
@@ -511,12 +511,17 @@ export function Page({ assetClass }) {
                   />
                   <${DataHighlight}
                     headline="Share of Women"
-                    value="${roleData?.shareOfWomen + " %" || ""}"
+                    value="${roleData?.shareOfWomen?.toFixed(0) + "%" || ""}"
                     vis="percentage"
                     visValue="${roleData ? roleData.shareOfWomen : null}"
                   />
                 `}
               </div>
+              <p style="color: #738287; font-size: 12px; line-height: 125%;">
+                Female representation is calculated across the full dataset and
+                segmented by role, seniority, and region. Variations by asset
+                class, strategy, and AUM band are not statistically material.
+              </p>
             </div>`}"
           />
           <div class="section-1-right">

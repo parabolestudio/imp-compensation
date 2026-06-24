@@ -25,7 +25,8 @@ export function Box({
   return html`<div
     className=${`box ${className || ""} ${showPlaceholder ? "box-placeholder" : ""}`}
   >
-    ${!hideHeader && html`<div class="box-header">
+    ${!hideHeader &&
+    html`<div class="box-header">
       <h2>
         ${icon ? html`<div class="box-header-icon">${icon}</div>` : ""}
         <span>${headline}</span>
@@ -60,8 +61,8 @@ export function Box({
             </svg>
 
             <p>
-              No data for the current selection.<br />
-              Change the filters to explore other combinations.
+              Insufficient data for the current selection.<br />
+              Change the filters to explore an alternative comparator set.
             </p>
           </div>`
         : children}
