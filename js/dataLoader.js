@@ -6,7 +6,7 @@ const SHEET_TAB_IDS = {
   // "main-data-new": "38414697",
   "role-box-data": "32159509",
   "radar-chart-data": "1271887760",
-  "last-data-update": "763135013",
+  "static-data": "763135013",
   "main-data-credit": "2128271370", // private debt = credit
   "main-data-private-equity": "1708469460", // private equity
   "main-data-real-assets": "1458438000", // real assets

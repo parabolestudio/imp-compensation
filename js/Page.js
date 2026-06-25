@@ -224,9 +224,9 @@ export function Page({ assetClass }) {
     Promise.all([
       fetchGoogleSheetCSV("role-box-data"),
       fetchGoogleSheetCSV("radar-chart-data"),
-      fetchGoogleSheetCSV("last-data-update"),
+      fetchGoogleSheetCSV("static-data"),
     ])
-      .then(([rawRoleData, rawRadarData, rawUpdateData]) => {
+      .then(([rawRoleData, rawRadarData, rawStaticData]) => {
         setDataRoleBox(
           rawRoleData.map((row) => ({
             team: row["Team"],
@@ -253,11 +253,11 @@ export function Page({ assetClass }) {
           })),
         );
 
-        if (rawUpdateData.length > 0 && rawUpdateData[0]["value"]) {
-          setLastDataUpdateInfo(rawUpdateData[0]["value"]);
+        if (rawStaticData.length > 0 && rawStaticData[0]["last_update"]) {
+          setLastDataUpdateInfo(rawStaticData[0]["last_update"]);
         } else {
           console.error(
-            "Last data update info sheet is empty or missing 'value' column",
+            "Static data sheet is empty or missing 'last_update' column",
           );
         }
       })
