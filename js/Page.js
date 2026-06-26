@@ -57,14 +57,7 @@ const FILTERS = [
     key: "region",
     label: "Region",
     dataField: "region",
-    defaultValue: "UK",
-    formatValueLabel: (value) =>
-      ({
-        EUR: "Europe",
-        APAC: "Asia-Pacific",
-        UK: "United Kingdom",
-        US: "USA",
-      })[value],
+    defaultValue: "United Kingdom",
   },
   {
     key: "strategy",
@@ -114,13 +107,22 @@ export function Page({ assetClass }) {
         const formattedData = rawData.map((row) => {
           let currency = row["Currency"];
           let currencySymbol = null;
-          if (currency === "GBP") {
-            currencySymbol = "£";
-          } else if (currency === "EUR") {
-            currencySymbol = "€";
-          } else if (currency === "USD") {
-            currencySymbol = "$";
-          }
+
+          const currencyList = {
+            "EUR": "€",
+            "USD": "$",
+            "GBP": "£",
+            "SEK": "kr",
+            "CHF": "CHF",
+            "SGD": "S$",
+            "HKD": "HK$",
+            "AUD": "A$",
+            "CAD": "C$",
+          };
+
+          currencySymbol = currencyList[currency] || null;
+
+
 
           return {
             assetClass: row["Asset Class"],
@@ -555,8 +557,7 @@ export function Page({ assetClass }) {
             headlineRight="${dataFiltered[0]?.currency
               ? html`<span class="text-tags-large"
                   ><div class="circle-green"></div>
-                  Values in ${dataFiltered[0]?.currency}${" "}
-                  (${dataFiltered[0]?.currencySymbol})</span
+                  Values in ${dataFiltered[0]?.currency}${dataFiltered[0]?.currencySymbol ? ` (${dataFiltered[0].currencySymbol})` : ""}</span
                 >`
               : null}"
             className="no-padding"
