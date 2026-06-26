@@ -11,6 +11,12 @@ import { Scatterplot } from "./Scatterplot.js";
 import { Radarchart } from "./Radarchart.js";
 import { REPO_URL } from "./helper.js";
 
+const formatWithK = (num) => {
+  const n = Number(num);
+  if (n >= 1000) return Math.round(n / 1000) + "k";
+  return n.toLocaleString();
+};
+
 const ASSET_CLASSES = [
   {
     label: "Private equity",
@@ -565,7 +571,7 @@ export function Page({ assetClass }) {
                   children="${html`<div>
                     <p class="text-big-numbers-large">
                       ${staticData.staticFirms
-                        ? Number(staticData.staticFirms).toLocaleString()
+                        ? formatWithK(staticData.staticFirms)
                         : "-"}
                     </p>
                     <p class="text-tags-large">Firms tracked</p>
@@ -577,9 +583,7 @@ export function Page({ assetClass }) {
                   children="${html`<div>
                     <p class="text-big-numbers-large">
                       ${staticData.staticProfessionals
-                        ? Number(
-                            staticData.staticProfessionals,
-                          ).toLocaleString()
+                        ? formatWithK(staticData.staticProfessionals)
                         : "-"}
                     </p>
                     <p class="text-tags-large">Professionals</p>
@@ -591,7 +595,7 @@ export function Page({ assetClass }) {
                   children="${html`<div>
                     <p class="text-big-numbers-large">
                       ${staticData.staticDataPoints
-                        ? Number(staticData.staticDataPoints).toLocaleString()
+                        ? formatWithK(staticData.staticDataPoints)
                         : "-"}
                     </p>
                     <p class="text-tags-large">Data Points</p>
