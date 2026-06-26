@@ -36,6 +36,22 @@ const FILTERS = [
     label: "Role",
     dataField: "role",
     defaultValue: null, // default value will be set dynamically based on the selected team
+    sortOptions: (a, b) => {
+      const order = [
+        "Analyst",
+        "Associate",
+        "Senior Associate",
+        "Vice President",
+        "Senior Vice President",
+        "Principal",
+        "Director",
+        "Managing Director",
+        "Senior Managing Director",
+      ];
+      const aIndex = order.indexOf(a.label);
+      const bIndex = order.indexOf(b.label);
+      return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
+    },
   },
   {
     key: "AUMband",
