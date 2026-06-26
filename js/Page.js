@@ -91,7 +91,12 @@ export function Page({ assetClass }) {
   const [dataRoleBox, setDataRoleBox] = useState([]);
   const [dataRoleBoxFiltered, setDataRoleBoxFiltered] = useState([]);
   const [dataRadarChart, setDataRadarChart] = useState([]);
-  const [lastDataUpdateInfo, setLastDataUpdateInfo] = useState(null);
+  const [staticData, setStaticData] = useState({
+    lastUpdated: null,
+    staticFirms: null,
+    staticProfessionals: null,
+    staticDataPoints: null,
+  });
   const [showExportDropdown, setShowExportDropdown] = useState(false);
 
   const [filterSelected, setFilterSelected] = useState(
@@ -125,20 +130,18 @@ export function Page({ assetClass }) {
           let currencySymbol = null;
 
           const currencyList = {
-            "EUR": "€",
-            "USD": "$",
-            "GBP": "£",
-            "SEK": "kr",
-            "CHF": "CHF",
-            "SGD": "S$",
-            "HKD": "HK$",
-            "AUD": "A$",
-            "CAD": "C$",
+            EUR: "€",
+            USD: "$",
+            GBP: "£",
+            SEK: "kr",
+            CHF: "CHF",
+            SGD: "S$",
+            HKD: "HK$",
+            AUD: "A$",
+            CAD: "C$",
           };
 
           currencySymbol = currencyList[currency] || null;
-
-
 
           return {
             assetClass: row["Asset Class"],
@@ -271,8 +274,14 @@ export function Page({ assetClass }) {
           })),
         );
 
-        if (rawStaticData.length > 0 && rawStaticData[0]["last_update"]) {
-          setLastDataUpdateInfo(rawStaticData[0]["last_update"]);
+        if (rawStaticData.length > 0) {
+          setStaticData({
+            ...staticData,
+            lastUpdated: rawStaticData[0]["last_update"] || null,
+            staticFirms: rawStaticData[0]["firms_tracked"] || null,
+            staticProfessionals: rawStaticData[0]["professionals"] || null,
+            staticDataPoints: rawStaticData[0]["data_points"] || null,
+          });
         } else {
           console.error(
             "Static data sheet is empty or missing 'last_update' column",
@@ -450,10 +459,10 @@ export function Page({ assetClass }) {
         <div class="header-top">
           <h1>${selectedAssetClass.label} compensation levels</h1>
           <div class="header-top-right">
-            ${lastDataUpdateInfo
+            ${staticData && staticData.lastUpdated
               ? html`<div>
                   <p class="text-tags-large">Last update</p>
-                  <p class="text-buttons">${lastDataUpdateInfo}</p>
+                  <p class="text-buttons">${staticData.lastUpdated}</p>
                 </div>`
               : null}
             ${allDataLoaded &&
@@ -543,27 +552,95 @@ export function Page({ assetClass }) {
             </div>`}"
           />
           <div class="section-1-right">
-            <${Box}
-              headlineIcon="house"
-              className="bg-dark"
-              showPlaceholder="${!allDataLoaded}"
-              children="${html`<div>
-                <p class="text-big-numbers-large">
-                  ${dataFiltered[0]?.numberOfCompanies || "-"}
+            <div class="boxes-container">
+              <div>
+                <h2 style="margin-bottom: 4px;">Platform coverage</h2>
+                <p class="text-descriptions">
+                  All asset classes, strategies, and regions.
                 </p>
-                <p class="text-tags-large">Companies in Sample</p>
-              </div>`}"
-            />
-            <${Box}
-              headlineIcon="data"
-              showPlaceholder="${!allDataLoaded}"
-              children="${html`<div>
-                <p class="text-big-numbers-large">
-                  ${dataFiltered[0]?.numberOfRespondents || "-"}
+              </div>
+              <div class="box-list">
+                <${Box}
+                  className="bg-dark summary-box"
+                  showPlaceholder="${!allDataLoaded}"
+                  children="${html`<div>
+                    <p class="text-big-numbers-large">
+                      ${staticData.staticFirms
+                        ? Number(staticData.staticFirms).toLocaleString()
+                        : "-"}
+                    </p>
+                    <p class="text-tags-large">Firms tracked</p>
+                  </div>`}"
+                />
+                <${Box}
+                  className="bg-dark summary-box"
+                  showPlaceholder="${!allDataLoaded}"
+                  children="${html`<div>
+                    <p class="text-big-numbers-large">
+                      ${staticData.staticProfessionals
+                        ? Number(
+                            staticData.staticProfessionals,
+                          ).toLocaleString()
+                        : "-"}
+                    </p>
+                    <p class="text-tags-large">Professionals</p>
+                  </div>`}"
+                />
+                <${Box}
+                  className="bg-dark summary-box"
+                  showPlaceholder="${!allDataLoaded}"
+                  children="${html`<div>
+                    <p class="text-big-numbers-large">
+                      ${staticData.staticDataPoints
+                        ? Number(staticData.staticDataPoints).toLocaleString()
+                        : "-"}
+                    </p>
+                    <p class="text-tags-large">Data Points</p>
+                  </div>`}"
+                />
+              </div>
+            </div>
+
+            <div class="boxes-container">
+              <div>
+                <h2 style="margin-bottom: 4px;">Your comparator set</h2>
+                <p class="text-descriptions">
+                  ${FILTERS.map((f) => {
+                    const val = filterSelected[f.key];
+                    return f.formatValueLabel ? f.formatValueLabel(val) : val;
+                  })
+                    .filter(Boolean)
+                    .join(" · ")}
                 </p>
-                <p class="text-tags-large">Data points in Sample</p>
-              </div>`}"
-            />
+              </div>
+              <div class="box-list">
+                <${Box}
+                  className="summary-box"
+                  showPlaceholder="${!allDataLoaded}"
+                  children="${html`<div>
+                    <p class="text-big-numbers-large">
+                      ${dataFiltered[0]?.numberOfCompanies || "-"}
+                    </p>
+                    <p class="text-tags-large">Firms in Set</p>
+                  </div>`}"
+                />
+                <${Box}
+                  className="summary-box"
+                  showPlaceholder="${!allDataLoaded}"
+                  children="${html`<div>
+                    <p class="text-big-numbers-large">
+                      ${dataFiltered[0]?.numberOfRespondents || "-"}
+                    </p>
+                    <p class="text-tags-large">Data points</p>
+                  </div>`}"
+                />
+              </div>
+              <p class="text-descriptions">
+                Data points represent observed reward attributes for distinct
+                professionals. Minimum 8 firms required to display percentile
+                data.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -573,7 +650,10 @@ export function Page({ assetClass }) {
             headlineRight="${dataFiltered[0]?.currency
               ? html`<span class="text-tags-large"
                   ><div class="circle-green"></div>
-                  Values in ${dataFiltered[0]?.currency}${dataFiltered[0]?.currencySymbol ? ` (${dataFiltered[0].currencySymbol})` : ""}</span
+                  Values in ${" "}
+                  ${dataFiltered[0]?.currency}${dataFiltered[0]?.currencySymbol
+                    ? `(${dataFiltered[0].currencySymbol})`
+                    : ""}</span
                 >`
               : null}"
             className="no-padding"
