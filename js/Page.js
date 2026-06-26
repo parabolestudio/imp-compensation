@@ -512,7 +512,7 @@ export function Page({ assetClass }) {
         </div>`}
         <div class="section section-1">
           <${Box}
-            headline="${`${dataFiltered[0]?.role || "Role"}`}"
+            headline="${`${dataFiltered[0]?.team || "Team"} · ${dataFiltered[0]?.role || "Role"}`}"
             headlineIcon="head"
             className="section-1-left"
             showPlaceholder="${!showContent}"
@@ -557,7 +557,11 @@ export function Page({ assetClass }) {
             </div>`}"
           />
           <div class="section-1-right">
-            <div class="boxes-container ${!showContent ? "boxes-container-placeholder" : ""}">
+            <div
+              class="boxes-container ${!showContent
+                ? "boxes-container-placeholder"
+                : ""}"
+            >
               <div>
                 <h2 style="margin-bottom: 4px;">Platform coverage</h2>
                 <p class="text-descriptions">
@@ -604,7 +608,11 @@ export function Page({ assetClass }) {
               </div>
             </div>
 
-            <div class="boxes-container ${!showContent ? "boxes-container-placeholder" : ""}">
+            <div
+              class="boxes-container ${!showContent
+                ? "boxes-container-placeholder"
+                : ""}"
+            >
               <div>
                 <h2 style="margin-bottom: 4px;">Your comparator set</h2>
                 <p class="text-descriptions">
