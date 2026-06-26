@@ -9,7 +9,7 @@ import { DataHighlight } from "./DataHighlight.js";
 import { Table } from "./Table.js";
 import { Scatterplot } from "./Scatterplot.js";
 import { Radarchart } from "./Radarchart.js";
-import { Loader } from "./Loader.js";
+import { REPO_URL } from "./helper.js";
 
 const ASSET_CLASSES = [
   {
@@ -30,12 +30,12 @@ const ASSET_CLASSES = [
 ];
 
 const FILTERS = [
-  { key: "team", label: "Team", dataField: "team", defaultValue: "HR" },
+  { key: "team", label: "Team", dataField: "team", defaultValue: null },
   {
     key: "role",
     label: "Role",
     dataField: "role",
-    defaultValue: null, // default value will be set dynamically based on the selected team
+    defaultValue: null,
     sortOptions: (a, b) => {
       const order = [
         "Analyst",
@@ -57,7 +57,7 @@ const FILTERS = [
     key: "AUMband",
     label: "AUM Range",
     dataField: "AUMband",
-    defaultValue: "Boutique (2-10bn)",
+    defaultValue: null,
     sortOptions: (a, b) => {
       const order = [
         "Startup (0-2bn)",
@@ -73,13 +73,13 @@ const FILTERS = [
     key: "region",
     label: "Region",
     dataField: "region",
-    defaultValue: "United Kingdom",
+    defaultValue: null,
   },
   {
     key: "strategy",
     label: "Strategy",
     dataField: "strategy",
-    defaultValue: "PE aggregate",
+    defaultValue: null,
     formatValueLabel: (value) => (value === "PE aggregate" ? "All" : value),
   },
 ];
@@ -103,19 +103,7 @@ export function Page({ assetClass }) {
     Object.fromEntries(FILTERS.map((f) => [f.key, f.defaultValue])),
   );
   const [filterOptions, setFilterOptions] = useState(
-    Object.fromEntries(
-      FILTERS.map((f) => [
-        f.key,
-        [
-          {
-            value: f.defaultValue,
-            label: f.formatValueLabel
-              ? f.formatValueLabel(f.defaultValue)
-              : f.defaultValue,
-          },
-        ],
-      ]),
-    ),
+    Object.fromEntries(FILTERS.map((f) => [f.key, []])),
   );
 
   const [dataFiltered, setDataFiltered] = useState([]);
@@ -196,42 +184,30 @@ export function Page({ assetClass }) {
 
         setDataForAssetClass(formattedData);
 
-        const teamOptions = [...new Set(formattedData.map((row) => row.team))];
-        const initialTeam =
-          teamOptions.find((t) => t === filterSelected.team) ??
-          teamOptions[0] ??
-          filterSelected.team;
         const newOptions = Object.fromEntries(
           FILTERS.map((f) => {
-            const filteredData =
-              f.key === "role"
-                ? formattedData.filter((row) => row.team === initialTeam)
-                : formattedData;
             return [
               f.key,
-              [...new Set(filteredData.map((row) => row[f.dataField]))]
-                .map((value) => ({
-                  value,
-                  label: f.formatValueLabel ? f.formatValueLabel(value) : value,
-                }))
-                .sort(
-                  f.sortOptions || ((a, b) => a.label.localeCompare(b.label)),
-                ),
+              f.key === "role"
+                ? []
+                : [...new Set(formattedData.map((row) => row[f.dataField]))]
+                    .map((value) => ({
+                      value,
+                      label: f.formatValueLabel
+                        ? f.formatValueLabel(value)
+                        : value,
+                    }))
+                    .sort(
+                      f.sortOptions ||
+                        ((a, b) => a.label.localeCompare(b.label)),
+                    ),
             ];
           }),
         );
-        const initialRole = newOptions.role[0]?.value ?? filterSelected.role;
-        const initialStrategy =
-          newOptions.strategy.find((o) => o.value === "PE aggregate")?.value ??
-          newOptions.strategy[0]?.value ??
-          filterSelected.strategy;
         setFilterOptions(newOptions);
-        setFilterSelected((prev) => ({
-          ...prev,
-          team: initialTeam,
-          role: initialRole,
-          strategy: initialStrategy,
-        }));
+        setFilterSelected(
+          Object.fromEntries(FILTERS.map((f) => [f.key, null])),
+        );
 
         prefetchOtherAssetClassTabs(selectedAssetClass.dataTab);
       })
@@ -344,9 +320,8 @@ export function Page({ assetClass }) {
         .sort(
           roleFilter.sortOptions || ((a, b) => a.label.localeCompare(b.label)),
         );
-      const firstRole = roleOptions[0]?.value ?? filterSelected.role;
       setFilterOptions((prev) => ({ ...prev, role: roleOptions }));
-      setFilterSelected((prev) => ({ ...prev, team: value, role: firstRole }));
+      setFilterSelected((prev) => ({ ...prev, team: value, role: null }));
     } else {
       setFilterSelected((prev) => ({ ...prev, [key]: value }));
     }
@@ -413,6 +388,17 @@ export function Page({ assetClass }) {
     dataRoleBox &&
     dataRoleBox.length > 0;
 
+  const allFiltersSelected = FILTERS.every(
+    (f) => filterSelected[f.key] != null,
+  );
+
+  const showContent = allDataLoaded && allFiltersSelected;
+
+  function handleClearAll() {
+    setFilterSelected(Object.fromEntries(FILTERS.map((f) => [f.key, null])));
+    setFilterOptions((prev) => ({ ...prev, role: [] }));
+  }
+
   const roleData =
     dataRoleBoxFiltered.length > 0 ? dataRoleBoxFiltered[0] : null;
 
@@ -421,7 +407,7 @@ export function Page({ assetClass }) {
   );
 
   return html`
-    <div class="custom-page ${!allDataLoaded ? "page-placeholder" : ""}">
+    <div class="custom-page ${!showContent ? "page-placeholder" : ""}">
       <div class="subnav-asset-class">
         ${ASSET_CLASSES.map((ac) => {
           const isSelected = ac.dataKey === selectedAssetClass.dataKey;
@@ -465,7 +451,7 @@ export function Page({ assetClass }) {
                   <p class="text-buttons">${staticData.lastUpdated}</p>
                 </div>`
               : null}
-            ${allDataLoaded &&
+            ${showContent &&
             html` <button
               onclick=${() => setShowExportDropdown((prev) => !prev)}
               class="export-button"
@@ -498,21 +484,34 @@ export function Page({ assetClass }) {
             onChange: (value) => handleFilterChange(f.key, value),
           }))}
           showPlaceholder="${!allDataLoaded}"
+          onClearAll=${handleClearAll}
         />
       </div>
 
       <div
         style="display: flex; flex-direction: column; gap: 32px; padding: 40px 32px; position: relative;"
       >
-        <${Loader} isLoading=${!allDataLoaded} />
+        ${!allDataLoaded &&
+        html`<div class="loader-overlay">
+          <img src="${REPO_URL}/assets/loader_circle.gif" alt="Loading..." />
+        </div>`}
+        ${allDataLoaded &&
+        !allFiltersSelected &&
+        html`<div class="select-data-overlay">
+          <img src="./assets/icon_pen.svg" alt="" class="filter-prompt-icon" />
+          <p class="loader-message">
+            Select a value for each of the filters to populate the
+            visualisations and explore the data.
+          </p>
+        </div>`}
         <div class="section section-1">
           <${Box}
             headline="${`${dataFiltered[0]?.role || "Role"}`}"
             headlineIcon="head"
             className="section-1-left"
-            showPlaceholder="${!allDataLoaded}"
-            noData=${allDataLoaded && !roleData}
-            hideHeader=${allDataLoaded && !roleData}
+            showPlaceholder="${!showContent}"
+            noData=${showContent && !roleData}
+            hideHeader=${showContent && !roleData}
             children="${html`<div
               style="display: flex; flex-direction: column; gap: 34px; justify-content: space-between; height: 100%;"
             >
@@ -552,7 +551,7 @@ export function Page({ assetClass }) {
             </div>`}"
           />
           <div class="section-1-right">
-            <div class="boxes-container">
+            <div class="boxes-container ${!showContent ? "boxes-container-placeholder" : ""}">
               <div>
                 <h2 style="margin-bottom: 4px;">Platform coverage</h2>
                 <p class="text-descriptions">
@@ -562,7 +561,7 @@ export function Page({ assetClass }) {
               <div class="box-list">
                 <${Box}
                   className="bg-dark summary-box"
-                  showPlaceholder="${!allDataLoaded}"
+                  showPlaceholder="${!showContent}"
                   children="${html`<div>
                     <p class="text-big-numbers-large">
                       ${staticData.staticFirms
@@ -574,7 +573,7 @@ export function Page({ assetClass }) {
                 />
                 <${Box}
                   className="bg-dark summary-box"
-                  showPlaceholder="${!allDataLoaded}"
+                  showPlaceholder="${!showContent}"
                   children="${html`<div>
                     <p class="text-big-numbers-large">
                       ${staticData.staticProfessionals
@@ -588,7 +587,7 @@ export function Page({ assetClass }) {
                 />
                 <${Box}
                   className="bg-dark summary-box"
-                  showPlaceholder="${!allDataLoaded}"
+                  showPlaceholder="${!showContent}"
                   children="${html`<div>
                     <p class="text-big-numbers-large">
                       ${staticData.staticDataPoints
@@ -601,7 +600,7 @@ export function Page({ assetClass }) {
               </div>
             </div>
 
-            <div class="boxes-container">
+            <div class="boxes-container ${!showContent ? "boxes-container-placeholder" : ""}">
               <div>
                 <h2 style="margin-bottom: 4px;">Your comparator set</h2>
                 <p class="text-descriptions">
@@ -616,7 +615,7 @@ export function Page({ assetClass }) {
               <div class="box-list">
                 <${Box}
                   className="summary-box"
-                  showPlaceholder="${!allDataLoaded}"
+                  showPlaceholder="${!showContent}"
                   children="${html`<div>
                     <p class="text-big-numbers-large">
                       ${dataFiltered[0]?.numberOfCompanies || "-"}
@@ -626,7 +625,7 @@ export function Page({ assetClass }) {
                 />
                 <${Box}
                   className="summary-box"
-                  showPlaceholder="${!allDataLoaded}"
+                  showPlaceholder="${!showContent}"
                   children="${html`<div>
                     <p class="text-big-numbers-large">
                       ${dataFiltered[0]?.numberOfRespondents || "-"}
@@ -657,8 +656,8 @@ export function Page({ assetClass }) {
                 >`
               : null}"
             className="no-padding"
-            showPlaceholder="${!allDataLoaded}"
-            noData=${allDataLoaded && dataFiltered.length === 0}
+            showPlaceholder="${!showContent}"
+            noData=${showContent && dataFiltered.length === 0}
             children="${html`<${Table} data=${dataFiltered} />`}"
           />
         </div>
@@ -667,15 +666,15 @@ export function Page({ assetClass }) {
           <${Box}
             headline="Compensation distribution"
             className="box-width-50"
-            showPlaceholder="${!allDataLoaded}"
-            noData=${allDataLoaded && dataFiltered.length === 0}
+            showPlaceholder="${!showContent}"
+            noData=${showContent && dataFiltered.length === 0}
             children="${html`<${Scatterplot} data=${dataFiltered} />`}"
           />
           <${Box}
             headline="Prevalence of incentives"
             className="box-width-50"
-            showPlaceholder="${!allDataLoaded}"
-            noData=${allDataLoaded && radarDataFiltered.length === 0}
+            showPlaceholder="${!showContent}"
+            noData=${showContent && radarDataFiltered.length === 0}
             children="${html`<${Radarchart} data=${radarDataFiltered} />`}"
           />
         </div>
