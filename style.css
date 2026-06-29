@@ -583,9 +583,10 @@
     align-items: center;
     justify-content: center;
     background: white;
-    padding: 140px 60px;
+    padding: 80px 60px;
     width: 380px;
-    /* min-height: 380px; */
+    border: 1px solid rgba(198, 198, 205, 0.15);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 
     img {
       width: auto;

@@ -624,12 +624,16 @@ export function Page({ assetClass }) {
                   Your comparator set
                 </h2>
                 <p class="text-descriptions">
-                  ${FILTERS.map((f) => {
-                    const val = filterSelected[f.key];
-                    return f.formatValueLabel ? f.formatValueLabel(val) : val;
-                  })
-                    .filter(Boolean)
-                    .join(" · ")}
+                  ${showContent
+                    ? FILTERS.map((f) => {
+                        const val = filterSelected[f.key];
+                        return f.formatValueLabel
+                          ? f.formatValueLabel(val)
+                          : val;
+                      })
+                        .filter(Boolean)
+                        .join(" · ")
+                    : ""}
                 </p>
               </div>
               <div class="box-list">
