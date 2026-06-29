@@ -504,7 +504,11 @@ export function Page({ assetClass }) {
         ${allDataLoaded &&
         !allFiltersSelected &&
         html`<div class="select-data-overlay">
-          <img src="./assets/icon_pen.svg" alt="" class="filter-prompt-icon" />
+          <img
+            src="${REPO_URL}/assets/icon_pen.svg"
+            alt=""
+            class="filter-prompt-icon"
+          />
           <p class="loader-message">
             Select a value for each of the filters to populate the
             visualisations and explore the data.
