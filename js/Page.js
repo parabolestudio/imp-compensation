@@ -567,7 +567,9 @@ export function Page({ assetClass }) {
                 : ""}"
             >
               <div>
-                <h2 style="margin-bottom: 4px;">Platform coverage</h2>
+                <h2 style="margin-bottom: 4px; font-weight: bold;">
+                  Platform coverage
+                </h2>
                 <p class="text-descriptions">
                   All asset classes, strategies, and regions.
                 </p>
@@ -618,7 +620,9 @@ export function Page({ assetClass }) {
                 : ""}"
             >
               <div>
-                <h2 style="margin-bottom: 4px;">Your comparator set</h2>
+                <h2 style="margin-bottom: 4px;font-weight: bold;">
+                  Your comparator set
+                </h2>
                 <p class="text-descriptions">
                   ${FILTERS.map((f) => {
                     const val = filterSelected[f.key];
