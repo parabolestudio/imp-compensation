@@ -487,6 +487,7 @@ export function Page({ assetClass }) {
             label: f.label,
             value: filterSelected[f.key],
             options: filterOptions[f.key],
+            disabled: f.key === "role" && !filterSelected.team,
             onChange: (value) => handleFilterChange(f.key, value),
           }))}
           showPlaceholder="${!allDataLoaded}"
